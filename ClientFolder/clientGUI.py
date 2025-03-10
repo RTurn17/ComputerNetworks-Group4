@@ -7,8 +7,16 @@ import time
 import random
 
 # Configurations
-GROUND_STATION_IP = "127.0.0.1"
-GROUND_STATION_PORT = 6000
+GROUND_STATION_IP = "172.20.10.4"
+GROUND_STATION_PORT = 5005
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create UDP socket
+
+message = "Hello from Lunar Rover!"
+sock.sendto(message.encode(), (GROUND_STATION_IP, GROUND_STATION_PORT))  # Send message
+
+print(f"Message1 sent to {GROUND_STATION_IP}:{GROUND_STATION_PORT}")
+
 
 # Generate a unique Rover ID and a dynamic port
 ROVER_ID = f"Rover_{random.randint(1000, 9999)}"
@@ -275,3 +283,15 @@ if st.session_state.error_active:
         st.image(error_image, use_container_width=True, caption="Hardware Malfunction/Out of sight!!", output_format="JPEG")
     else:
         st.error("Error image not found. Please make sure the image exists in your Downloads folder.")
+
+
+#SEND MESSAGE2 TO SERVER 
+message = st.text_input("💬 Enter message to send")
+
+if st.button("Send Message"):
+    if peer_ip and peer_port and message:
+        send_to_peer(peer_ip, peer_port, message)
+
+sock.sendto(message.encode(), (GROUND_STATION_IP, GROUND_STATION_PORT))  # Send message
+
+print(f"Message2 sent to {GROUND_STATION_IP}:{GROUND_STATION_PORT}")
