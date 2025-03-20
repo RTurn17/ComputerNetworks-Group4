@@ -1,117 +1,155 @@
 import socket
 import time
 import random
+import csv
 
-# Define the server host and port
-HOST = '10.0.0.59'  # Localhost (loopback) for the same machine
-PORT = 12334        # Port to bind to
+# Function to create and bind a socket on a given port
+def start_server(port):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(("localhost", port))
+    server_socket.listen(1)
+    print(f"\nServer is listening on port {port}...")
 
-# Create a socket
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket, client_address = server_socket.accept()
+    print(f"Connection established with {client_address} on port {port}")
 
-# Bind the socket to the host and port
-server_socket.bind((HOST, PORT))
+    return server_socket, client_socket
 
-# Start listening for incoming connections
-server_socket.listen(1)
-print("Server is waiting for a connection...")
+# Ask user which port to use
+print("\nSelect a port for communication:")
+print("5000 → Movement Commands")
+print("5001 → Telemetry Requests")
+print("5002 → Data Transmission")
+print("5003 → Error Messages")
 
-# Accept a connection from the client
-client_socket, client_address = server_socket.accept()
-print(f"Connection established with {client_address}")
+port = int(input("\nEnter port number (5000-5003): ").strip())
 
-# Receive the initial data from the client
-data = client_socket.recv(1024)
-print(f"Received from client: {data.decode()}")
+# Start the server on the chosen port
+server_socket, client_socket = start_server(port)
 
-# Send a response back to the client
-client_socket.sendall("Connection established Earth Server 04!".encode())
-
-# Simulate random latency (1 to 3 seconds)
-def simulate_latency():
-    delay = random.uniform(1, 3)  # Random delay between 1 and 3 seconds
-    time.sleep(delay)
-
-# Function to simulate packet loss (10% chance of packet loss)
-def simulate_packet_loss():
-    return random.random() > 0.1  # 90% chance of not dropping the packet
-
-# Start the communication loop
-while True:
-    # Ask for user input on what to do
-    print("\nWhat would you like the rover to do?")
-    print("1. Move")
-    print("2. Send Data")
-    print("3. Close Connection")
-
-    command = input("Enter choice (move/send data/close connection): ").strip().lower()
-
-    if command == "move":
-        # Simulate latency before sending move request
-        simulate_latency()
-        # Send move request to the client
-        client_socket.sendall("Please move to a new location.".encode())
-
-        # Receive response from the client (simulate latency)
-        simulate_latency()
-
-       # Client informs that it has moved
-        response = client_socket.recv(1024)
-        if simulate_packet_loss():  # Simulate packet loss here
-            print(f"Client response: {response.decode()}")
-        else:
-            print("Packet lost, no response from client.")
-
-
-        # Wait for a few seconds to simulate moving
-        time.sleep(3)
-        
-        simulate_latency()
-        # Client informs that it has moved
-        response = client_socket.recv(1024)
-        if simulate_packet_loss():  # Simulate packet loss here
-            print(f"Client response: {response.decode()}")
-        else:
-            print("Packet lost, no response from client.")
-
-    elif command == "send data":
-        # Ask the user for the error scenario they want to simulate
-        print("\nSelect simulation scenario before sending data:")
-        print("1. Without Errors")
-        print("2. Hardware Error")
-        print("3. Out of Sight")
-
-        option = input("Enter choice (1/2/3): ").strip()
-
-        # Simulate latency before asking the client to send data
-        simulate_latency()
-        # Send the option to the client
-        client_socket.sendall(option.encode())
-
-        #  Receive and print data from the client line by line
-        while True:
-            #simulate_latency()
-            data = client_socket.recv(1024).decode()
-            #if simulate_packet_loss():  # Simulate packet loss here
-            if data == "All data sent.":
-                print("All data received from client.")
+def send_movement_commands(client_socket):
+    while True:
+        try:
+            x = input("\nEnter target X coordinate (or 'exit' to close connection): ").strip()
+            if x.lower() == "exit":
+                client_socket.send("exit".encode())
+                print("\nExiting movement mode.")
                 break
-            else:
-                print(f"{data.strip()}")
-            #else:
-                #print("Packet lost, skipping this packet.")
+            
+            y = input("Enter target Y coordinate: ").strip()
+
+            # Send coordinates as a comma-separated string
+            command = f"{x},{y}"
+            client_socket.send(command.encode())
+
+            # Wait for a response from the client
+            response = client_socket.recv(1024).decode()
+            print(f"\nClient response: {response}")
+
+        except Exception as e:
+            print(f"\nError: {e}")
+            break
+
+def send_telemetry_request(client_socket):
+    while True:
+        # Ask the user what telemetry data they want
+        print("\nSelect telemetry request:")
+        print("1 → Battery Telemetry")
+        print("2 → Wheel Telemetry")
+        print("3 → Thermal Conditions")
+        print("4 → Exit")
+        
+        choice = input("Enter your choice (1-4): ").strip()
+
+        if choice == '1':
+            client_socket.sendall("Request telemetry data for battery.".encode())
+        elif choice == '2':
+            client_socket.sendall("Request telemetry data for wheels.".encode())
+        elif choice == '3':
+            client_socket.sendall("Request telemetry data for thermal conditions.".encode())
+        elif choice == '4':
+            client_socket.sendall("Exit".encode())
+            print("\nExiting telemetry mode.")
+            break
+        else:
+            print("\nInvalid choice, please try again.")
+            continue
+
+        # Receive and print telemetry response
+        data = client_socket.recv(1024).decode()
+        print(f"\nReceived telemetry data: {data}")
 
 
-    elif command == "close connection":
-        simulate_latency()
-        # Close the connection to the client and server
-        print("Closing connection.")
-        client_socket.sendall("Server is closing the connection.".encode())
-        break
+def receive_and_save_data(client_socket):
+    print("\nRequesting data...")
+    client_socket.sendall("Send data.".encode())
 
-    else:
-        print("Invalid command. Please type 'move', 'send data', or 'close connection'.")
+    # Open CSV file for writing received data
+    with open("received_data.csv", "w", newline="") as csvfile:
+        csv_writer = csv.writer(csvfile)
 
-# Close the client and server sockets
+        while True:
+            data = client_socket.recv(1024).decode()
+            if not data:
+                print("\nNo data received, client may have disconnected.")
+                break
+            if data == "All data sent.":
+                print("\nAll data received from client.")
+                break
+
+            # Print received data
+            print(data.strip())
+
+            # Write received data to CSV file (assuming comma-separated values)
+            csv_writer.writerow([data.strip()])
+
+    print("\nData saved to received_data.csv.")
+
+def send_error_request(client_socket):
+     while True:
+        # Ask the user what telemetry data they want
+        # Choose error type
+        print("\nSelect error type to send:")
+        print("1 → Hardware Error")
+        print("2 → Out of Sight Error")
+        print("3 → Exit")
+        
+        choice = input("Enter your choice (1-3): ").strip()
+
+        if choice == '1':
+            client_socket.sendall("Request hardware error.".encode())
+        elif choice == '2':
+            client_socket.sendall("Request out of sight error.".encode())
+        elif choice == '3':
+            client_socket.sendall("Exit".encode())
+            print("\nExiting telemetry mode.")
+            break
+        else:
+            print("\nInvalid choice, please try again.")
+            continue
+
+        # Receive and print telemetry response
+        data = client_socket.recv(1024).decode()
+        print(f"\nReceived error data: {data}")
+
+
+if port == 5000:  # Movement Commands
+    print("\nHandling movement commands...")
+    send_movement_commands(client_socket)
+
+elif port == 5001:  # Telemetry Requests
+    print("\nHandling telemetry requests...")
+    send_telemetry_request(client_socket)
+
+elif port == 5002:  # Data Transmission
+    print("\nHandling data requests...")
+    receive_and_save_data(client_socket)
+
+elif port == 5003:  # Error Messages
+    print("\nListening for error messages...")
+    send_error_request(client_socket)
+
+# Close connections
 client_socket.close()
 server_socket.close()
+print("\nServer connection closed.")
