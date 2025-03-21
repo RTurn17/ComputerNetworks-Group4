@@ -1,8 +1,9 @@
 import socket
+import random
 import time
 
 # Define the server details
-SERVER_IP = 'localhost'
+SERVER_IP = 'localhost' #localhost for same laptop
 
 # Define the ports for different tasks
 PORTS = {
@@ -24,7 +25,8 @@ def movement_client():
             print("\nExiting movement mode.")
             break
         elif command:
-            print(f"|nReceived movement command: {command}")
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            print(f"\nReceived movement command: {command}")
             for _ in range(5):  # Print "Moving..." every second for 5 seconds
                 print("Moving...")
                 time.sleep(1)
@@ -42,6 +44,7 @@ def telemetry_client():
         command = client_socket.recv(1024).decode()
 
         if command.startswith("Request telemetry data"):
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
             print("\nReceived telemetry request.")
             
             # Wait 3 seconds before sending data
@@ -100,6 +103,7 @@ def data_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_IP, PORTS["data"]))
 
+    time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
     print("\nServer asks to send data.")
         
     # Open the CSV file and send it line by line with a delay
@@ -128,22 +132,57 @@ def error_client():
     while True:
         # Receive error request from server
         error_request = client_socket.recv(1024).decode()
-        print(f"\nReceived request: {error_request}")
+        #print(f"\nReceived request: {error_request}")
         
-        # Determine appropriate response
+         # Respond to the server based on the error message
         if error_request == "Request hardware error.":
-            response = "Hardware Error"
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            # Hardware error encountered, simulate handling it
+            print("\nSensor Malfunctioning!")
+            
+            # Respond based on the server's choice (either stop or use backup)
+            error_response = "Sensor Hardware error encountered!"
+            client_socket.sendall(error_response.encode())
+            
+            action_taken = client_socket.recv(1024).decode()
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            print(f"\nAction taken: {action_taken}")
+
+            if action_taken == "Rover has stopped due to a hardware error. Head Department notified.":
+               time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+               print("\nStopping Rover...")
+               break
+            elif action_taken == "Backup sensor activated. Rover continues operation.":
+                time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+                print("\nActivating backup sensor and continuing rover's operation...")
+                break
+
         elif error_request == "Request out of sight error.":
-            response = "Out of Sight Error"
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            print("\n...")
+            # Handle the out of sight error accordingly...
+             # Respond based on the server's choice (either stop or use backup)
+            error_response = "Rover Out Of Sight!"
+            client_socket.sendall(error_response.encode())
+
+            action_taken = client_socket.recv(1024).decode()
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            print(f"\nAction taken: {action_taken}")
+
+            if action_taken == "Rover is out of sight. Head Department notified.":
+               time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+               print("\nStopping Rover...")
+               break
+            elif action_taken == "Rovers Coordinations Request.":
+                 time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+                 print("\nGetting Rovers Coordinates...")
+                 coordinates = "30.20"
+                 client_socket.sendall(coordinates.encode())
+                 break
+
         else:
-            response = "Unknown Error Request"
-
-        # Wait 1 second before sending response
-        time.sleep(1)
-
-        # Send response to server
-        client_socket.sendall(response.encode())
-        print(f"Sent response: {response}")
+            print("\nUnknown error request.")
+            continue
 
 # Start clients in separate threads
 import threading
