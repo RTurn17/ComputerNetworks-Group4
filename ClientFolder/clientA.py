@@ -173,18 +173,15 @@ def data_client(public_key):  # Added public_key as a parameter
         print("\nCSV file not found.")
 
 
-
 # Function to send errors
-def error_client():
+def error_client(public_key):  # Added public_key as a parameter
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_IP, PORTS["errors"]))
 
     while True:
-        # Receive error request from server
         error_request = client_socket.recv(1024).decode()
         print(f"\nReceived request: {error_request}")
         
-        # Determine appropriate response
         if error_request == "Request hardware error.":
             response = "Hardware Error"
         elif error_request == "Request out of sight error.":
@@ -192,12 +189,18 @@ def error_client():
         else:
             response = "Unknown Error Request"
 
-        # Wait 1 second before sending response
         time.sleep(1)
 
-        # Send response to server
-        client_socket.sendall(response.encode())
+        # Encrypt the error response before sending to the server
+        encrypted_response = encrypt_message(public_key, response)  # Encrypt response
+        if encrypted_response:
+            client_socket.sendall(encrypted_response)
+        else:
+            print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+            break
+
         print(f"Sent response: {response}")
+
 
 # Start clients in separate threads
 import threading
