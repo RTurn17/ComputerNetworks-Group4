@@ -55,8 +55,14 @@ def movement_client():
                 time.sleep(1)
             print(f"\nMoved to requested location: {command}")
         
-        # Send confirmation to server
-        client_socket.sendall(f"Moved to {command}".encode())
+        # Encrypt the confirmation message before sending
+        encrypted_message = encrypt_message(public_key, f"Moved to {command}")
+        
+        if encrypted_message:
+            client_socket.sendall(encrypted_message)
+        else:
+            print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+            break
 
 # Function to handle telemetry
 def telemetry_client():
