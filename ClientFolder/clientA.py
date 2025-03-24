@@ -65,7 +65,7 @@ def movement_client():
             break
 
 # Function to handle telemetry
-def telemetry_client():
+def telemetry_client(public_key):  # Added public_key as a parameter
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_IP, PORTS["telemetry"]))
 
@@ -91,7 +91,13 @@ def telemetry_client():
                 "   Internal Resistance: 0.015 ohms\n"
                 "   Capacity: 1500mAh\n"
             )
-            client_socket.sendall(data.encode())
+            # Encrypt and send the telemetry data
+            encrypted_data = encrypt_message(public_key, data)
+            if encrypted_data:
+                client_socket.sendall(encrypted_data)
+            else:
+                print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+                break
         
         elif command == "Request telemetry data for wheels.":
             # Respond with wheel telemetry data
@@ -107,7 +113,12 @@ def telemetry_client():
                 "   Rear Left Wheel: 2.3 Nm\n"
                 "   Rear Right Wheel: 2.5 Nm\n"
             )
-            client_socket.sendall(data.encode())
+            encrypted_data = encrypt_message(public_key, data)
+            if encrypted_data:
+                client_socket.sendall(encrypted_data)
+            else:
+                print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+                break
         
         elif command == "Request telemetry data for thermal conditions.":
             # Respond with thermal condition data
@@ -117,15 +128,19 @@ def telemetry_client():
                 "Battery Temperature: 47°C (116.6°F)\n"
                 "Wheel Temperature: 48°C (118.4°F)\n"
             )
-            client_socket.sendall(data.encode())
+            encrypted_data = encrypt_message(public_key, data)
+            if encrypted_data:
+                client_socket.sendall(encrypted_data)
+            else:
+                print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+                break
         
         elif command == "Exit":
             print("\nExiting telemetry mode.")
             break
         else:
             print("\nUnknown telemetry request.")
-            return
-
+        
 # Function to handle data sending
 def data_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
