@@ -12,6 +12,15 @@ PORTS = {
     "errors": 5003
 }
 
+# Generate RSA keys (for simplicity, generating them directly here)
+def generate_rsa_keys():
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048
+    )
+    public_key = private_key.public_key()
+    return private_key, public_key
+
 # Function to handle movement
 def movement_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
