@@ -1,5 +1,8 @@
 import socket
 import time
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes
 
 # Define the server details
 SERVER_IP = '127.0.0.1'
@@ -38,7 +41,7 @@ def encrypt_message(public_key, message):
         return None
 
 # Function to handle movement
-def movement_client():
+def movement_client(public_key):  # Added public_key as a parameter
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_IP, PORTS["move"]))
     
@@ -49,7 +52,7 @@ def movement_client():
             print("\nExiting movement mode.")
             break
         elif command:
-            print(f"|nReceived movement command: {command}")
+            print(f"\nReceived movement command: {command}")
             for _ in range(5):  # Print "Moving..." every second for 5 seconds
                 print("Moving...")
                 time.sleep(1)
@@ -205,11 +208,14 @@ def error_client(public_key):  # Added public_key as a parameter
 # Start clients in separate threads
 import threading
 
+# Generate the public key once (shared among clients)
+_, public_key = generate_rsa_keys()
+
 threads = [
-    threading.Thread(target=movement_client),
-    threading.Thread(target=telemetry_client),
-    threading.Thread(target=data_client),
-    threading.Thread(target=error_client)
+    threading.Thread(target=movement_client, args=(public_key,)),
+    threading.Thread(target=telemetry_client, args=(public_key,)),
+    threading.Thread(target=data_client, args=(public_key,)),
+    threading.Thread(target=error_client, args=(public_key,))
 ]
 
 for thread in threads:
