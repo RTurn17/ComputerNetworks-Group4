@@ -142,7 +142,7 @@ def telemetry_client(public_key):  # Added public_key as a parameter
             print("\nUnknown telemetry request.")
         
 # Function to handle data sending
-def data_client():
+def data_client(public_key):  # Added public_key as a parameter
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_IP, PORTS["data"]))
 
@@ -152,18 +152,26 @@ def data_client():
     try:
         with open("data_dummy1.csv", 'r') as file:
             for line in file:
-                    # Send each line to the server
-                    client_socket.sendall(line.encode())
-
-                    # Wait for 1 second before sending the next line
+                # Encrypt each line before sending to the server
+                encrypted_line = encrypt_message(public_key, line.strip())  # Encrypt each line
+                if encrypted_line:
+                    client_socket.sendall(encrypted_line)
                     time.sleep(1)
+                else:
+                    print("ACCESS DENIED: Encryption failed due to mismatched keys.")
+                    break
 
             # After sending all lines, notify the server
-            client_socket.sendall("All data sent.".encode())
-            print("\nAll data sent.")
+            encrypted_message = encrypt_message(public_key, "All data sent.".strip())  # Encrypt notification message
+            if encrypted_message:
+                client_socket.sendall(encrypted_message)
+                print("\nAll data sent.")
+            else:
+                print("ACCESS DENIED: Encryption failed for final message.")
             
     except FileNotFoundError:
-            print("\nCSV file not found.")
+        print("\nCSV file not found.")
+
 
 
 # Function to send errors
