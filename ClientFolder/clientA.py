@@ -21,6 +21,22 @@ def generate_rsa_keys():
     public_key = private_key.public_key()
     return private_key, public_key
 
+# Function to encrypt message using public key
+def encrypt_message(public_key, message):
+    try:
+        ciphertext = public_key.encrypt(
+            message.encode(),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return ciphertext
+    except Exception as e:
+        print(f"Encryption error: {str(e)}")
+        return None
+
 # Function to handle movement
 def movement_client():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
