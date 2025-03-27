@@ -237,7 +237,7 @@ def discovery_client():
                 print(f"\n🤖Searching for nearby rovers...")
 
                 # Simulating a list of nearby rovers found (In a real scenario, you might query for available rovers)
-                nearby_rovers = ["Rover_01", "Rover_02", "Rover_03"]
+                nearby_rovers = ["Rover_03", "Rover_13"] #As we're collaborating with group 3 and 13
 
                 # Send the list of nearby rovers to the server
                 print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
