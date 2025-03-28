@@ -9,6 +9,34 @@ host = socket.gethostbyname(socket.gethostname()) ##Uncomment
 # Print the determined IP address
 print(f"\n🔹 Server IP Address: {host}") ##Uncomment
 
+# Authentication
+def authenticate(client_socket):
+    # Define the correct passwords
+    key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
+    if(int(time.time()) % 5 == 0):
+        keyWord = int(time.time()) % 8
+        current_password = key[keyWord]
+    local_password = "securepassword123"
+    
+    # Ask the server to input the password
+    password_input = input("Enter the server password: ")
+
+    # Send the password to the client
+    if (password_input == local_password):
+        client_socket.send(current_password.encode())
+    else:
+        print("\n❌ Invalid password inputted.")
+
+    # Wait for client to confirm the password
+    response = client_socket.recv(1024).decode()
+    
+    if response == "Password correct":
+        print("\n🔑 Password validated successfully.")
+        return True
+    else:
+        print("\n❌ Invalid password. Connection will be terminated.")
+        return False
+
 # Function to create and bind a socket on a given port
 def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -219,7 +247,8 @@ def handle_out_of_sight_error(client_socket):
     else:
         print("\n❌Invalid choice. Please select a valid action.")
         handle_out_of_sight_error(client_socket)  # Recursive call to handle error again
-        
+
+
 def send_discovery_request(client_socket):
     while True:
         # Choose error type
