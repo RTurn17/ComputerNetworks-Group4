@@ -1,3 +1,4 @@
+# client
 import socket
 import random
 import time
@@ -15,6 +16,28 @@ PORTS = {
     "errors": 5003,
     "discovery": 5004
 } 
+
+# Server Authentication
+def authenticate(client_socket):
+    # Define array of passwords
+    key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
+    if(int(time.time()) % 5 == 0):
+        keyWord = int(time.time()) % 8
+        correct_password = key[keyWord]
+    
+    # Receive the password from the server
+    server_password = client_socket.recv(1024).decode()
+
+    if server_password == correct_password:
+        # If password is correct, send a confirmation
+        client_socket.send("Password correct".encode())
+        print("\n🔑 Authentication successful.")
+        return True
+    else:
+        # If password is incorrect, send failure response
+        client_socket.send("Invalid password".encode())
+        print("\n❌ Authentication failed.")
+        return False 
 
 # Function to handle movement
 def movement_client():
@@ -218,7 +241,6 @@ def error_client():
         print(f"\n⚠️Unexpected error in error_client(): {e}")
     finally:
         client_socket.close()
-
 
 #Discover othe rorvers:
 def discovery_client(): 
