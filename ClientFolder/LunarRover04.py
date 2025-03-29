@@ -5,7 +5,7 @@ import time
 import threading
 
 # Define the server details
-SERVER_IP = '172.20.10.4' #localhost for same laptop
+SERVER_IP = 'localhost' #localhost for same laptop
 ROVER_ID = "Rover_04"  # Unique identifier for your rover
 
 # Define the ports for different tasks
@@ -21,22 +21,19 @@ PORTS = {
 def authenticate(client_socket):
     # Define array of passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
-    if(int(time.time()) % 5 == 0):
-        keyWord = int(time.time()) % 8
-        correct_password = key[keyWord]
+    keyWord = int(time.time()) % 7
+    correct_password = key[keyWord]
     
     # Receive the password from the server
     server_password = client_socket.recv(1024).decode()
 
     if server_password == correct_password:
-        # If password is correct, send a confirmation
-        client_socket.send("Password correct".encode())
-        print("\n🔑 Authentication successful.")
+        # If password is correct, send success response
+        client_socket.send("correct".encode())
         return True
     else:
         # If password is incorrect, send failure response
-        client_socket.send("Invalid password".encode())
-        print("\n❌ Authentication failed.")
+        client_socket.send("incorrect".encode())
         return False 
 
 # Function to handle movement
@@ -44,6 +41,7 @@ def movement_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["move"]))
+        authenticate(client_socket)
 
         while True:
             command = client_socket.recv(1024).decode()
@@ -74,6 +72,7 @@ def telemetry_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["telemetry"]))
+        authenticate(client_socket)
 
         while True:
             command = client_socket.recv(1024).decode()
@@ -145,6 +144,7 @@ def data_client():
     try: 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
+        authenticate(client_socket)
 
         time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
         print("\n📊Server asks to send data.")
@@ -179,6 +179,7 @@ def error_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["errors"]))
+        authenticate(client_socket)
 
         while True:
             # Receive error request from server
@@ -249,6 +250,7 @@ def discovery_client():
         client_socket.connect((SERVER_IP, PORTS["discovery"]))
 
         while True:
+            authenticate(client_socket)
             command = client_socket.recv(1024).decode()
             if command == "Exit":
                 print("\n🚪Exiting discovery mode.")
@@ -290,7 +292,6 @@ def discovery_client():
         client_socket.close()
 
 # Start clients in separate threads
-
 threads = [
     threading.Thread(target=movement_client),
     threading.Thread(target=telemetry_client),
