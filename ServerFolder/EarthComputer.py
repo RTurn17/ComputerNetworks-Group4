@@ -4,17 +4,17 @@ import random
 import csv
 
 # Automatically determine the server's IP address
-host = socket.gethostbyname(socket.gethostname()) ##Uncomment
+#host = socket.gethostbyname(socket.gethostname()) #### Uncommen t####
 
 # Print the determined IP address
-print(f"\n🔹 Server IP Address: {host}") ##Uncomment
+#print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
 
 # Function to create and bind a socket on a given port
 def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("172.20.10.4", port))
+    server_socket.bind(("localhost", port)) ######## CHANGE TO IP ###########
     server_socket.listen(1)
-    print(f"\n🌍Earth-Computer04 is listening on port {port}...")
+    print(f"\n🌍Earth Computer04 is listening on port {port}...")
 
     client_socket, client_address = server_socket.accept()
     print(f"✅Connection established with {client_address} on port {port}")
@@ -56,7 +56,7 @@ def send_movement_commands(client_socket):
             print(f"\n📡Client response: {response}")
 
         except Exception as e:
-            print(f"\n⚠Error: {e}")
+            print(f"\n⚠️Error: {e}")
             break
 
 def send_telemetry_request(client_socket):
@@ -102,7 +102,7 @@ def receive_and_save_data(client_socket):
             try:
                 data = client_socket.recv(1024).decode()
                 if not data:
-                    print("\n⚠No data received, client may have disconnected.")
+                    print("\n⚠️No data received, client may have disconnected.")
                     break
                 if data == "All data sent.":
                     print("\n✅All data received from client.")
@@ -181,7 +181,7 @@ def handle_hardware_error(client_socket):
         message = "Backup sensor activated. Rover continues operation."
         client_socket.sendall(message.encode())
         time.sleep(3)
-        print("\n🛰Backup sensor activated. Rover continues operation.")
+        print("\n🛰️Backup sensor activated. Rover continues operation.")
         # Simulate activation of a backup sensor here, or continue the rover with limited functionality.
     else:
         print("\n❌Invalid choice. Please select a valid action.")
@@ -275,7 +275,7 @@ elif port == 5002:  # Data Transmission
     receive_and_save_data(client_socket)
 
 elif port == 5003:  # Error Messages
-    print("\n⚠Listening for error messages...")
+    print("\n⚠️Listening for error messages...")
     send_error_request(client_socket)
 
 elif port == 5004:  # Rover discovery
