@@ -41,9 +41,9 @@ def movement_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["move"]))
-        authenticate(client_socket)
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             command = client_socket.recv(1024).decode()
             if command == "exit":
                 print("\n🚪Exiting movement mode.")
@@ -72,9 +72,9 @@ def telemetry_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["telemetry"]))
-        authenticate(client_socket)
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             command = client_socket.recv(1024).decode()
 
             if command.startswith("Request telemetry data"):
@@ -144,27 +144,28 @@ def data_client():
     try: 
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
-        authenticate(client_socket)
+        auth = authenticate(client_socket)
 
-        time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-        print("\n📊Server asks to send data.")
-        
-        # Open the CSV file and send it line by line with a delay
-        try:
-            with open("data_dummy1.csv", 'r') as file:
-                for line in file:
-                        # Send each line to the server
-                        client_socket.sendall(line.encode())
-
-                        # Wait for 1 second before sending the next line
-                        time.sleep(1)
-
-                # After sending all lines, notify the server
-                client_socket.sendall("All data sent.".encode())
-                print("\n✅All data sent.")
+        if auth == True:
+            time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+            print("\n📊Server asks to send data.")
             
-        except FileNotFoundError:
-                print("\n⚠️CSV file not found.")
+            # Open the CSV file and send it line by line with a delay
+            try:
+                with open("data_dummy1.csv", 'r') as file:
+                    for line in file:
+                            # Send each line to the server
+                            client_socket.sendall(line.encode())
+
+                            # Wait for 1 second before sending the next line
+                            time.sleep(1)
+
+                    # After sending all lines, notify the server
+                    client_socket.sendall("All data sent.".encode())
+                    print("\n✅All data sent.")
+                
+            except FileNotFoundError:
+                    print("\n⚠️CSV file not found.")
 
     except ConnectionError:
         print("\nPort 5002: Data, not on use")
@@ -179,9 +180,9 @@ def error_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["errors"]))
-        authenticate(client_socket)
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             # Receive error request from server
             error_request = client_socket.recv(1024).decode()
             #print(f"\nReceived request: {error_request}")
