@@ -37,9 +37,10 @@ def start_server(port):
 
     if (authenticate(client_socket)):
         print(f"✅Connection established with {client_address} on port {port}")
-        return server_socket, client_socket
+        return server_socket, client_socket, 1
     else: 
         print("Authentication failed, connection terminating.")
+        return server_socket, client_socket, 0
 
 # Ask user which port to use
 print("\nSelect a port for communication:")
@@ -57,7 +58,10 @@ password_input = input("\nPlease enter your password: ")
 # Check if user input correct password
 if (password_input == local_password):
     # Start the server on the chosen port
-    server_socket, client_socket = start_server(port)
+    server_socket, client_socket, auth = start_server(port)
+    if(auth == 0):
+        client_socket.close()
+        server_socket.close()
 else:
     print("Incorrct Password\n")
 
@@ -290,25 +294,26 @@ def send_discovery_request(client_socket):
             handle_hardware_error(client_socket)  # Error handling for invalid input
 
 
-if port == 5000:  # Movement Commands
-    print("\n🚀Handling movement commands...")
-    send_movement_commands(client_socket)
+if auth == 1:
+    if port == 5000:  # Movement Commands
+        print("\n🚀Handling movement commands...")
+        send_movement_commands(client_socket)
 
-elif port == 5001:  # Telemetry Requests
-    print("\n📊Handling telemetry requests...")
-    send_telemetry_request(client_socket)
+    elif port == 5001:  # Telemetry Requests
+        print("\n📊Handling telemetry requests...")
+        send_telemetry_request(client_socket)
 
-elif port == 5002:  # Data Transmission
-    print("\n📡Handling data requests...")
-    receive_and_save_data(client_socket)
+    elif port == 5002:  # Data Transmission
+        print("\n📡Handling data requests...")
+        receive_and_save_data(client_socket)
 
-elif port == 5003:  # Error Messages
-    print("\n⚠Listening for error messages...")
-    send_error_request(client_socket)
+    elif port == 5003:  # Error Messages
+        print("\n⚠Listening for error messages...")
+        send_error_request(client_socket)
 
-elif port == 5004:  # Rover discovery
-    print("\n🤖Listening for nearby lunar devices...")
-    send_discovery_request(client_socket)
+    elif port == 5004:  # Rover discovery
+        print("\n🤖Listening for nearby lunar devices...")
+        send_discovery_request(client_socket)
 
 # Close connections
 client_socket.close()
