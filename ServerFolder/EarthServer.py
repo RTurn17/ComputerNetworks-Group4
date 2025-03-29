@@ -4,50 +4,42 @@ import random
 import csv
 
 # Automatically determine the server's IP address
-host = socket.gethostbyname(socket.gethostname()) ##Uncomment
+#host = socket.gethostbyname(socket.gethostname()) ##Uncomment
 
 # Print the determined IP address
-print(f"\n🔹 Server IP Address: {host}") ##Uncomment
+#print(f"\n🔹 Server IP Address: {host}") ##Uncomment
 
 # Authentication
 def authenticate(client_socket):
     # Define the correct passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
-    if(int(time.time()) % 5 == 0):
-        keyWord = int(time.time()) % 8
-        current_password = key[keyWord]
-    local_password = "securepassword123"
-    
-    # Ask the server to input the password
-    password_input = input("Enter the server password: ")
+    keyWord = int(time.time()) % 7
+    current_password = key[keyWord]
 
-    # Send the password to the client
-    if (password_input == local_password):
-        client_socket.send(current_password.encode())
-    else:
-        print("\n❌ Invalid password inputted.")
-
+    # send current password to client
+    client_socket.send(current_password.encode())
     # Wait for client to confirm the password
     response = client_socket.recv(1024).decode()
     
-    if response == "Password correct":
-        print("\n🔑 Password validated successfully.")
+    if response == "correct":
         return True
     else:
-        print("\n❌ Invalid password. Connection will be terminated.")
         return False
 
 # Function to create and bind a socket on a given port
 def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("172.20.10.4", port))
+    server_socket.bind(("localhost", port))
     server_socket.listen(1)
     print(f"\n🌍Server is listening on port {port}...")
 
     client_socket, client_address = server_socket.accept()
-    print(f"✅Connection established with {client_address} on port {port}")
 
-    return server_socket, client_socket
+    if (authenticate(client_socket)):
+        print(f"✅Connection established with {client_address} on port {port}")
+        return server_socket, client_socket
+    else: 
+        print("Authentication failed, connection terminating.")
 
 # Ask user which port to use
 print("\nSelect a port for communication:")
@@ -59,8 +51,15 @@ print("5004 → Discover Nearby Rovers")
 
 port = int(input("\nEnter port number (5000-5004): ").strip())
 
-# Start the server on the chosen port
-server_socket, client_socket = start_server(port)
+local_password = "securepassword123"
+# Ask the user to input the password
+password_input = input("\nPlease enter your password: ")
+# Check if user input correct password
+if (password_input == local_password):
+    # Start the server on the chosen port
+    server_socket, client_socket = start_server(port)
+else:
+    print("Incorrct Password\n")
 
 def send_movement_commands(client_socket):
     while True:
