@@ -4,7 +4,7 @@ import time
 import threading
 
 # Define the server details
-SERVER_IP = '172.20.10.4' #localhost for same laptop
+SERVER_IP = 'localhost' #localhost for same laptop ######## CHANGE TO IP ###########
 ROVER_ID = "Rover_04"  # Unique identifier for your rover
 
 # Define the ports for different tasks
@@ -13,8 +13,8 @@ PORTS = {
     "telemetry": 5001,
     "data": 5002,
     "errors": 5003,
-    "discovery": 5004
-} 
+    "discovery": 5004 
+}
 
 # Function to handle movement
 def movement_client():
@@ -30,7 +30,7 @@ def movement_client():
 
             elif command:
                 time.sleep(random.uniform(1.0, 2.0))  
-                print(f"\n📡Received movement command: {command}")
+                print(f"\n📡Received movement command: {command}") 
                 for _ in range(5):
                     print("Moving...")
                     time.sleep(1)
@@ -237,7 +237,7 @@ def discovery_client():
                 print(f"\n🤖Searching for nearby rovers...")
 
                 # Simulating a list of nearby rovers found (In a real scenario, you might query for available rovers)
-                nearby_rovers = ["Rover_03", "Rover_13"] #As we're collaborating with group 3 and 13
+                nearby_rovers = ["Rover_03", "Rover_13"]
 
                 # Send the list of nearby rovers to the server
                 print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
