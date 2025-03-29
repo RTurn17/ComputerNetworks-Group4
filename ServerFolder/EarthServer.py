@@ -14,7 +14,7 @@ def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(("172.20.10.4", port))
     server_socket.listen(1)
-    print(f"\n🌍Server is listening on port {port}...")
+    print(f"\n🌍Earth-Computer04 is listening on port {port}...")
 
     client_socket, client_address = server_socket.accept()
     print(f"✅Connection established with {client_address} on port {port}")
