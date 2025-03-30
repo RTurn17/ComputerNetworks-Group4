@@ -3,6 +3,15 @@ import time
 import random
 import csv
 
+welcome_message = """
+███████╗ █████╗ ██████╗ ████████╗██╗  ██╗        ██████╗ ██╗  ██╗
+██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██║  ██║        ██╔══██╗██║  ██║
+██████╗ ███████║██████╔╝   ██║   ███████║        ██║  ██║███████║
+██╔════╗██╔══██║██╔██╗     ██║   ██╔══██║        ██║  ██║╚════██║
+███████╗██║  ██║██║╚██╗    ██║   ██║  ██║        ██████╔╝     ██║
+╚══════╝╚═╝  ╚═╝╚═╝ ╚═╝    ╚═╝   ╚═╝  ╚═╝        ╚═════╝      ╚═╝
+"""
+
 # Automatically determine the server's IP address
 #host = socket.gethostbyname(socket.gethostname()) #### Uncommen t####
 
@@ -21,6 +30,7 @@ def start_server(port):
 
     return server_socket, client_socket
 
+print(welcome_message)
 # Ask user which port to use
 print("\nSelect a port for communication:")
 print("5000 → Movement Commands")
