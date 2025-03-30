@@ -3,6 +3,15 @@ import random
 import time
 import threading
 
+welcome_message = """
+██╗    ██╗   ██╗███╗   ██╗ █████╗ ██████╗       ██████╗ ██████╗ ██╗   ██╗███████╗██████╗
+██║    ██║   ██║████╗  ██║██╔══██╗██╔══██╗      ██╔══██╗██╔══██╗██║   ██║██╔════╝██╔══██╗
+██║    ██║   ██║██╔██╗ ██║███████║██████╔╝      ██████╔╝██║  ██║██║   ██║██████╗ ██████╔╝
+██║    ██║   ██║██║╚██╗██║██╔══██║██╔██╗        ██╔██╗  ██║  ██║ ██║ ██║ ██╔════╗██╔██╗
+██████╗╚██████╔╝██║ ╚████║██║  ██║██║╚██╗       ██║╚██╗ ██████╔╝  ╚███╔╝ ███████╗██║╚██╗  
+╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝ ╚═╝       ╚═╝ ╚═╝ ╚═════╝    ╚══╝  ╚══════╝╚═╝ ╚═╝
+"""
+
 # Define the server details
 SERVER_IP = 'localhost' #localhost for same laptop ######## CHANGE TO IP ###########
 ROVER_ID = "Rover_04"  # Unique identifier for your rover
@@ -15,6 +24,8 @@ PORTS = {
     "errors": 5003,
     "discovery": 5004 
 }
+
+print(welcome_message)
 
 # Function to handle movement
 def movement_client():
@@ -40,7 +51,7 @@ def movement_client():
                 client_socket.sendall(f"Moved to {command}".encode())
     
     except ConnectionError:
-        print("\nPort 5000: Movement, not on use.")
+        print("Port 5000: Movement, not on use.")
     except Exception as e:
         print(f"\n⚠️Unexpected error in movement_client(): {e}")
     finally:
@@ -111,7 +122,7 @@ def telemetry_client():
                 continue
         
     except ConnectionError:
-        print("\nPort 5001: Telemetry, not on use.")
+        print("Port 5001: Telemetry, not on use.")
     except Exception as e:
         print(f"\n⚠️Unexpected error in telemetry_client(): {e}")
     finally:
@@ -144,7 +155,7 @@ def data_client():
                 print("\n⚠️CSV file not found.")
 
     except ConnectionError:
-        print("\nPort 5002: Data, not on use")
+        print("Port 5002: Data, not on use")
     except Exception as e:
         print(f"\n⚠️Unexpected error in data_client(): {e}")
     finally:
@@ -213,7 +224,7 @@ def error_client():
                 continue
             
     except ConnectionError:
-        print("\nPort 5003: Error simulation, not on use")
+        print("Port 5003: Error simulation, not on use")
     except Exception as e:
         print(f"\n⚠️Unexpected error in error_client(): {e}")
     finally:
@@ -261,7 +272,7 @@ def discovery_client():
                     print(f"\nInvalid rover selected by server.")
     
     except ConnectionError:
-        print("\nPort 5004: Discovery, not on use")
+        print("Port 5004: Discovery, not on use")
     except Exception as e:
         print(f"\n⚠️Unexpected error in discovery_client(): {e}")
     finally:
