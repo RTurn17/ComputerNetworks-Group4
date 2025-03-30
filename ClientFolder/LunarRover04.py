@@ -12,11 +12,10 @@ welcome_message = """
 ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝ ╚═╝       ╚═╝ ╚═╝ ╚═════╝    ╚══╝  ╚══════╝╚═╝ ╚═╝
 """
 
-# Define the server details
-SERVER_IP = 'localhost' #localhost for same laptop ######## CHANGE TO IP ###########
+SERVER_IP = 'localhost' #'localhost' for same laptop ######## CHANGE TO IP ###########
 ROVER_ID = "Rover_04"  # Unique identifier for your rover
 
-# Define the ports for different tasks
+# Ports used for each different task simulation
 PORTS = {
     "move": 5000,
     "telemetry": 5001,
@@ -27,11 +26,11 @@ PORTS = {
 
 print(welcome_message)
 
-# Function to handle movement
+# Function to handle movement request
 def movement_client():
     try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((SERVER_IP, PORTS["move"]))
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create client socket using IPv4 and TCP
+        client_socket.connect((SERVER_IP, PORTS["move"])) # Connect to the move port
 
         while True:
             command = client_socket.recv(1024).decode()
@@ -42,7 +41,7 @@ def movement_client():
             elif command:
                 time.sleep(random.uniform(1.0, 2.0))  
                 print(f"\n📡Received movement command: {command}") 
-                for _ in range(5):
+                for _ in range(5): # Print 5 times
                     print("Moving...")
                     time.sleep(1)
                 print(f"\n📍Moved to requested location: {command}")
@@ -57,7 +56,7 @@ def movement_client():
     finally:
         client_socket.close()
 
-# Function to handle telemetry
+# Function to handle telemetry request
 def telemetry_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,11 +66,10 @@ def telemetry_client():
             command = client_socket.recv(1024).decode()
 
             if command.startswith("Request telemetry data"):
-               time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+               time.sleep(random.uniform(1.0, 2.0))  # Random delay simulation between 1, 2s
                print("\nReceived telemetry request.")
             
-               # Wait 3 seconds before sending data
-               for _ in range(3):
+               for _ in range(3): # Print 3 times before sending data
                    print("\n📥Gathering data...")
                    time.sleep(1)
         
@@ -134,20 +132,17 @@ def data_client():
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
 
-        time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+        time.sleep(random.uniform(1.0, 2.0))
         print("\n📊Server asks to send data.")
         
-        # Open the CSV file and send it line by line with a delay
+        # Open the CSV file and send it line by line with a delay simulation
         try:
             with open("data_dummy1.csv", 'r') as file:
                 for line in file:
-                        # Send each line to the server
-                        client_socket.sendall(line.encode())
+                        client_socket.sendall(line.encode()) # Send line by line to the server
+                        time.sleep(1) # Wait for 1 second before sending the next line
 
-                        # Wait for 1 second before sending the next line
-                        time.sleep(1)
-
-                # After sending all lines, notify the server
+                # After sending all lines:
                 client_socket.sendall("All data sent.".encode())
                 print("\n✅All data sent.")
             
@@ -169,53 +164,49 @@ def error_client():
         client_socket.connect((SERVER_IP, PORTS["errors"]))
 
         while True:
-            # Receive error request from server
             error_request = client_socket.recv(1024).decode()
             #print(f"\nReceived request: {error_request}")
         
              # Respond to the server based on the error message
-            if error_request == "Request hardware error.":
-                time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                # Hardware error encountered, simulate handling it
+            if error_request == "Request hardware error.": # Sensor ahrdware error simulation
+                time.sleep(random.uniform(1.0, 2.0))
                 print("\n⚠️Sensor Malfunctioning!")
             
-                # Respond based on the server's choice (either stop or use backup)
                 error_response = "Sensor Hardware error encountered!"
                 client_socket.sendall(error_response.encode())
             
-                action_taken = client_socket.recv(1024).decode()
-                time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+                action_taken = client_socket.recv(1024).decode() # Servers action taken regarding the error
+                time.sleep(random.uniform(1.0, 2.0))
                 print(f"\nAction taken: {action_taken}")
 
                 if action_taken == "Rover has stopped due to a hardware error. Head Department notified.":
-                   time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                   print("\n🛑Stopping Rover...")
+                   time.sleep(random.uniform(1.0, 2.0)) 
+                   print("\n🛑Stopping Rover...") # Simulate stopping rover
                    break
                 elif action_taken == "Backup sensor activated. Rover continues operation.":
-                    time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                    print("\n🚨Activating backup sensor and continuing rover's operation...")
+                    time.sleep(random.uniform(1.0, 2.0)) 
+                    print("\n🚨Activating backup sensor and continuing rover's operation...") # Simulate activating a backup sensor
                     break
 
             elif error_request == "Request out of sight error.":
-                time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                print("\n...")
-                # Handle the out of sight error accordingly...
-                 # Respond based on the server's choice (either stop or use backup)
+                time.sleep(random.uniform(1.0, 2.0)) 
+                print("\n...") # Rover not on sight
+
                 error_response = "⚠️Rover Out Of Sight!"
                 client_socket.sendall(error_response.encode())
     
-                action_taken = client_socket.recv(1024).decode()
-                time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
+                action_taken = client_socket.recv(1024).decode() # Servers action taken regarding the error
+                time.sleep(random.uniform(1.0, 2.0)) 
                 print(f"\nAction taken: {action_taken}")
     
                 if action_taken == "Rover is out of sight. Head Department notified.":
-                   time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                   print("\n🛑Stopping Rover...")
+                   time.sleep(random.uniform(1.0, 2.0)) 
+                   print("\n🛑Stopping Rover...") # Simulate stopping rover
                    break
                 elif action_taken == "Rovers Coordinations Request.":
-                     time.sleep(random.uniform(1.0, 2.0))  # Random delay between 1 and 2 seconds (simulation)
-                     print("\n📍Getting Rovers Coordinates...")
-                     coordinates = "30.20"
+                     time.sleep(random.uniform(1.0, 2.0)) 
+                     print("\n📍Getting Rovers Coordinates...") # Simulate getting rover coordinates
+                     coordinates = "30.20" 
                      client_socket.sendall(coordinates.encode())
                      break
 
@@ -247,26 +238,17 @@ def discovery_client():
                 time.sleep(random.uniform(1.0, 2.0))  
                 print(f"\n🤖Searching for nearby rovers...")
 
-                # Simulating a list of nearby rovers found (In a real scenario, you might query for available rovers)
-                nearby_rovers = ["Rover_03", "Rover_13"]
+                nearby_rovers = ["Rover_03", "Rover_13"] # Simulating a list of nearby rovers found (with groups3 and 13)
 
-                # Send the list of nearby rovers to the server
                 print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
-                client_socket.sendall(f"Nearby rovers: {', '.join(nearby_rovers)}".encode())
-
-                # Wait for server to respond with a choice of rover to connect to
-                chosen_rover = client_socket.recv(1024).decode()
+                client_socket.sendall(f"Nearby rovers: {', '.join(nearby_rovers)}".encode()) # Send the list of nearby rovers to the server
+ 
+                chosen_rover = client_socket.recv(1024).decode() # Servers choice to connect to
                 print(f"\n🤖Server selected rover: {chosen_rover}")
 
-                if chosen_rover in nearby_rovers:
+                if chosen_rover in nearby_rovers: # If the chosen rover is wihtin the discovered ones
                     print(f"\nAttempting to connect to {chosen_rover}...")
-
-                    # Simulate connection establishment with the chosen rover
-                    # In a real-world scenario, the client could try to connect to the specific rover
-                    # Here we just simulate a successful connection to the chosen rover
                     client_socket.sendall(f"Connecting to {chosen_rover}".encode())
-
-                    # Now the server can handle further communication with the chosen rover
                     print(f"\n✅Connection established with {chosen_rover}.")
                 else:
                     print(f"\nInvalid rover selected by server.")
@@ -278,9 +260,8 @@ def discovery_client():
     finally:
         client_socket.close()
 
-# Start clients in separate threads
 
-threads = [
+threads = [ # Start clients in separate threads to ensures all ports a listening to server
     threading.Thread(target=movement_client),
     threading.Thread(target=telemetry_client),
     threading.Thread(target=data_client),
@@ -289,7 +270,7 @@ threads = [
 ]
 
 for thread in threads:
-    thread.start()
+    thread.start() #Simulationous thread start
 
 for thread in threads:
-    thread.join()
+    thread.join() # Program waits
