@@ -35,12 +35,12 @@ def movement_client():
         while True:
             command = client_socket.recv(1024).decode()
             if command == "exit":
-                print("\n🚪Exiting movement mode.")
+                print("\nExiting movement mode.")
                 break
 
             elif command:
                 time.sleep(random.uniform(1.0, 2.0))  
-                print(f"\n📡Received movement command: {command}") 
+                print(f"\nReceived movement command: {command}") 
                 for _ in range(5): # Print 5 times
                     print("Moving...")
                     time.sleep(1)
@@ -76,10 +76,10 @@ def telemetry_client():
             if command == "Request telemetry data for battery.":
                 # Respond with detailed battery information
                 data = (
-                "\n🔋Battery Voltage: 11.8V\n"
-                "🔋Battery Current: -1.2A\n"
-                "🔋Battery State of Charge (SOC): 75%\n"
-                "🔋Battery Health:\n"
+                "\nBattery Voltage: 11.8V\n"
+                "Battery Current: -1.2A\n"
+                "Battery State of Charge (SOC): 75%\n"
+                "Battery Health:\n"
                 "   Charge Cycles: 200 cycles\n"
                 "   Internal Resistance: 0.015 ohms\n"
                 "   Capacity: 1500mAh\n"
@@ -89,12 +89,12 @@ def telemetry_client():
             elif command == "Request telemetry data for wheels.":
                # Respond with wheel telemetry data
                 data = (
-                "\n🛞Wheel Speed:\n"
+                "\nWheel Speed:\n"
                 "   Front Left Wheel: 0.5 m/s\n"
                 "   Front Right Wheel: 0.5 m/s\n"
                 "   Rear Left Wheel: 0.4 m/s\n"
                 "   Rear Right Wheel: 0.5 m/s \n"
-                "🛞Wheel Torque:\n"
+                "Wheel Torque:\n"
                 "   Front Left Wheel: 2.5 Nm\n"
                 "   Front Right Wheel: 2.4 Nm\n"
                 "   Rear Left Wheel: 2.3 Nm\n"
@@ -105,15 +105,15 @@ def telemetry_client():
             elif command == "Request telemetry data for thermal conditions.":
                 # Respond with thermal condition data
                 data = (
-                "\n🌡Ambient Temperature: 127°C (260°F)\n"
-                "🌡Electronics Temperature: 15°C (59°F)\n"
-                "🌡Battery Temperature: 47°C (116.6°F)\n"
-                "🌡Wheel Temperature: 48°C (118.4°F)\n"
+                "\nAmbient Temperature: 127°C (260°F)\n"
+                "Electronics Temperature: 15°C (59°F)\n"
+                "Battery Temperature: 47°C (116.6°F)\n"
+                "Wheel Temperature: 48°C (118.4°F)\n"
                 )
                 client_socket.sendall(data.encode())
         
             elif command == "Exit":
-                print("\n🚪Exiting telemetry mode.")
+                print("\nExiting telemetry mode.")
                 break
             else:
                 print("\n⚠️Unknown telemetry request.")
@@ -133,7 +133,7 @@ def data_client():
         client_socket.connect((SERVER_IP, PORTS["data"]))
 
         time.sleep(random.uniform(1.0, 2.0))
-        print("\n📊Server asks to send data.")
+        print("\nServer asks to send data.")
         
         # Open the CSV file and send it line by line with a delay simulation
         try:
@@ -231,12 +231,12 @@ def discovery_client():
         while True:
             command = client_socket.recv(1024).decode()
             if command == "Exit":
-                print("\n🚪Exiting discovery mode.")
+                print("\nExiting discovery mode.")
                 break
 
             elif command =="Nearby discovery.":
                 time.sleep(random.uniform(1.0, 2.0))  
-                print(f"\n🤖Searching for nearby rovers...")
+                print(f"\nSearching for nearby rovers...")
 
                 nearby_rovers = ["Rover_03", "Rover_13"] # Simulating a list of nearby rovers found (with groups3 and 13)
 
@@ -244,7 +244,7 @@ def discovery_client():
                 client_socket.sendall(f"Nearby rovers: {', '.join(nearby_rovers)}".encode()) # Send the list of nearby rovers to the server
  
                 chosen_rover = client_socket.recv(1024).decode() # Servers choice to connect to
-                print(f"\n🤖Server selected rover: {chosen_rover}")
+                print(f"\nServer selected rover: {chosen_rover}")
 
                 if chosen_rover in nearby_rovers: # If the chosen rover is wihtin the discovered ones
                     print(f"\nAttempting to connect to {chosen_rover}...")
