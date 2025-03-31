@@ -4,14 +4,14 @@ import time
 import threading
 import pyfiglet
 from colorama import Fore,init
-from rich.console import Console 
+from rich.console import Console
 
 welcome_message = """
 ██╗    ██╗   ██╗███╗   ██╗ █████╗ ██████╗       ██████╗ ██████╗ ██╗   ██╗███████╗██████╗
 ██║    ██║   ██║████╗  ██║██╔══██╗██╔══██╗      ██╔══██╗██╔══██╗██║   ██║██╔════╝██╔══██╗
 ██║    ██║   ██║██╔██╗ ██║███████║██████╔╝      ██████╔╝██║  ██║██║   ██║██████╗ ██████╔╝
 ██║    ██║   ██║██║╚██╗██║██╔══██║██╔██╗        ██╔██╗  ██║  ██║ ██║ ██║ ██╔════╗██╔██╗
-██████╗╚██████╔╝██║ ╚████║██║  ██║██║╚██╗       ██║╚██╗ ██████╔╝  ╚███╔╝ ███████╗██║╚██╗  
+██████╗╚██████╔╝██║ ╚████║██║  ██║██║╚██╗       ██║╚██╗ ██████╔╝  ╚███╔╝ ███████╗██║╚██╗
 ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝ ╚═╝       ╚═╝ ╚═╝ ╚═════╝    ╚══╝  ╚══════╝╚═╝ ╚═╝
 """
 
@@ -24,8 +24,8 @@ PORTS = {
     "telemetry": 5001,
     "data": 5002,
     "errors": 5003,
-    "discovery": 5004, 
-    "group_rover": 5005  
+    "discovery": 5004,
+    "group_rover": 5005
 }
 
 print(welcome_message)
@@ -73,12 +73,12 @@ def telemetry_client():
             command = client_socket.recv(1024).decode()
 
             if command.startswith("Request telemetry data"):
-               time.sleep(random.uniform(1.0, 2.0))  # Random delay simulation between 1, 2s
-               print("\nReceived telemetry request.")
+                time.sleep(random.uniform(1.0, 2.0))  # Random delay simulation between 1, 2s
+                print("\nReceived telemetry request.")
             
-               for _ in range(3): # Print 3 times before sending data
-                   print("\n📥Gathering data...")
-                   time.sleep(1)
+                for _ in range(3): # Print 3 times before sending data
+                    print("\n📥Gathering data...")
+                    time.sleep(1)
         
             if command == "Request telemetry data for battery.":
                 # Respond with detailed battery information
@@ -94,7 +94,7 @@ def telemetry_client():
                 client_socket.sendall(data.encode())
         
             elif command == "Request telemetry data for wheels.":
-               # Respond with wheel telemetry data
+            # Respond with wheel telemetry data
                 data = (
                 "\nWheel Speed:\n"
                 "   Front Left Wheel: 0.5 m/s\n"
@@ -135,7 +135,7 @@ def telemetry_client():
 
 # Function to handle data sending
 def data_client():
-    try: 
+    try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
 
@@ -146,15 +146,33 @@ def data_client():
         try:
             with open("data_dummy1.csv", 'r') as file:
                 for line in file:
-                        client_socket.sendall(line.encode()) # Send line by line to the server
-                        time.sleep(1) # Wait for 1 second before sending the next line
+                    client_socket.sendall(line.encode())  # Send line by line to the server
+                    time.sleep(1)  # Wait for 1 second before sending the next line
 
-                # After sending all lines:
-                client_socket.sendall("All data sent.".encode())
-                print("\n✅All data sent.")
-            
+            # After sending all CSV lines:
+            client_socket.sendall("All data sent.".encode())
+            print("\n✅All data sent.")
         except FileNotFoundError:
-                print("\n⚠️CSV file not found.")
+            print("\n⚠️CSV file not found.")
+        
+        # Now send the image file (additional feature)
+        try:
+            with open("image_dummy.jpg", "rb") as image_file:
+                # Signal the start of the image transfer
+                client_socket.sendall("IMAGE_START".encode())
+                time.sleep(0.5)
+                # Read and send the image in chunks (1KB per chunk)
+                while True:
+                    chunk = image_file.read(1024)
+                    if not chunk:
+                        break
+                    client_socket.sendall(chunk)
+                time.sleep(0.5)
+                # Signal the end of the image transfer
+                client_socket.sendall("IMAGE_END".encode())
+            print("\n✅Data image is downloaded.")
+        except FileNotFoundError:
+            print("\n⚠️Image file not found.")
 
     except ConnectionError:
         print("Port 5002: Data, not on use. ")
@@ -162,6 +180,7 @@ def data_client():
         print(f"\n⚠️Unexpected error in data_client(): {e}")
     finally:
         client_socket.close()
+
 
 
 # Function to send error simulations
@@ -174,7 +193,7 @@ def error_client():
             error_request = client_socket.recv(1024).decode()
             #print(f"\nReceived request: {error_request}")
         
-             # Respond to the server based on the error message
+            # Respond to the server based on the error message
             if error_request == "Request hardware error.": # Sensor ahrdware error simulation
                 time.sleep(random.uniform(1.0, 2.0))
                 print("\n⚠️Sensor Malfunctioning!")
@@ -187,9 +206,9 @@ def error_client():
                 print(f"\nAction taken: {action_taken}")
 
                 if action_taken == "Rover has stopped due to a hardware error. Head Department notified.":
-                   time.sleep(random.uniform(1.0, 2.0)) 
-                   print("\n🛑Stopping Rover...") # Simulate stopping rover
-                   break
+                    time.sleep(random.uniform(1.0, 2.0)) 
+                    print("\n🛑Stopping Rover...") # Simulate stopping rover
+                    break
                 elif action_taken == "Backup sensor activated. Rover continues operation.":
                     time.sleep(random.uniform(1.0, 2.0)) 
                     print("\n🚨Activating backup sensor and continuing rover's operation...") # Simulate activating a backup sensor
@@ -207,15 +226,15 @@ def error_client():
                 print(f"\nAction taken: {action_taken}")
     
                 if action_taken == "Rover is out of sight. Head Department notified.":
-                   time.sleep(random.uniform(1.0, 2.0)) 
-                   print("\n🛑Stopping Rover...") # Simulate stopping rover
-                   break
+                    time.sleep(random.uniform(1.0, 2.0)) 
+                    print("\n🛑Stopping Rover...") # Simulate stopping rover
+                    break
                 elif action_taken == "Rovers Coordinations Request.":
-                     time.sleep(random.uniform(1.0, 2.0)) 
-                     print("\n📍Getting Rovers Coordinates...") # Simulate getting rover coordinates
-                     coordinates = "30.20" 
-                     client_socket.sendall(coordinates.encode())
-                     break
+                    time.sleep(random.uniform(1.0, 2.0)) 
+                    print("\n📍Getting Rovers Coordinates...") # Simulate getting rover coordinates
+                    coordinates = "30.20" 
+                    client_socket.sendall(coordinates.encode())
+                    break
 
             else:
                 print("\n⚠️Unknown error request.")
@@ -242,14 +261,14 @@ def discovery_client():
                 break
 
             elif command =="Nearby discovery.":
-                time.sleep(random.uniform(1.0, 2.0))  
-                print(f"\nSearching for nearby rovers...")
+                time.sleep(random.uniform(1.0, 2.0))
+                print("\nSearching for nearby rovers...")
 
                 nearby_rovers = ["Rover_03", "Rover_13"] # Simulating a list of nearby rovers found (with groups 3 and 13)
 
                 print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
                 client_socket.sendall(f"Nearby rovers: {', '.join(nearby_rovers)}".encode()) # Send the list of nearby rovers to the server
- 
+
                 chosen_rover = client_socket.recv(1024).decode() # Servers choice to connect to
                 print(f"\nServer selected rover: {chosen_rover}")
 
@@ -258,7 +277,7 @@ def discovery_client():
                     client_socket.sendall(f"Connecting to {chosen_rover}".encode())
                     print(f"\n✅Connection established with {chosen_rover}.")
                 else:
-                    print(f"\nInvalid rover selected by server.")
+                    print("\nInvalid rover selected by server.")
     
     except ConnectionError:
         print("Port 5004: Discovery, not on use. ")
