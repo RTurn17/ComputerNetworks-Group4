@@ -1,10 +1,10 @@
-import socket 
-import time 
-import random 
+import socket
+import time
+import random
 import csv
 import pyfiglet
 from colorama import Fore,init
-from rich.console import Console 
+from rich.console import Console
 
 
 welcome_message = """
@@ -58,8 +58,8 @@ if password_input == local_password:
     # Start the server on the chosen port
     server_socket, client_socket = start_server(port)
     
-    #client_socket.close()  # Close the client socket after use
-    #server_socket.close()  # Close the server socket after use
+    #client_socket.close()   Close the client socket after use
+    #server_socket.close()   Close the server socket after use
     #print("\nServer connection closed.")
 else:
     print("Incorrect Password\n")
@@ -96,7 +96,7 @@ def send_movement_commands(client_socket):
             
             y = input("Enter target Y coordinate: ").strip()
 
-            command = f"{x},{y}" 
+            command = f"{x},{y}"
             client_socket.send(command.encode()) # Send coordinates as a comma-separated string
             time.sleep(random.uniform(1.0, 2.0)) # Random delay between 1 and 2 seconds (simulation)
 
@@ -153,7 +153,7 @@ def receive_and_save_data(client_socket):
     print("\n📥Requesting data...")
     client_socket.sendall("Send data.".encode())
 
-    # Create a new csv file for writing received data
+    # Create a new CSV file for writing received data
     with open("received_data.csv", "w", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
 
@@ -161,13 +161,12 @@ def receive_and_save_data(client_socket):
             try:
                 data = receive_with_timeout(client_socket, 300, 1)
                 if data: 
-                   if data == "All data sent.":
-                      print("\nAll data received from client.")
-                      break
-                   
-                   print(data.strip()) # Print every line of received data 
-                  # time.sleep(random.uniform(1.0, 2.0))
-                   csv_writer.writerow([data.strip()]) # Write received data to CSV file
+                    if data == "All data sent.":
+                        print("\nAll data received from client.")
+                        break
+
+                    print(data.strip())  # Print every line of received data
+                    csv_writer.writerow([data.strip()])  # Write received data to CSV file
                 else:
                     print("\n⚠️No data received within the timeout. Closing data reception.")
                     break
@@ -178,10 +177,34 @@ def receive_and_save_data(client_socket):
 
     print("\n📂Data saved to received_data.csv.")
 
+    # Now receive the image file
+    try:
+        # Wait for the image start marker
+        marker = client_socket.recv(1024).decode().strip()
+        if marker == "IMAGE_START":
+            image_data = b""
+            while True:
+                chunk = client_socket.recv(1024)
+                if b"IMAGE_END" in chunk:
+                    end_index = chunk.find(b"IMAGE_END")
+                    image_data += chunk[:end_index]
+                    break
+                image_data += chunk
+
+            # Save the received image to file
+            with open("received_image.jpg", "wb") as img_file:
+                img_file.write(image_data)
+            print("\n✅Data image is downloaded.")
+        else:
+            print(f"\n⚠️Expected IMAGE_START marker but got: {marker}")
+    except Exception as e:
+        print(f"\nError while receiving image: {e}")
+
+
 
 # Function for Error Port 5003 to simulate error scenarios
 def send_error_request(client_socket):
-     while True:
+    while True:
         # Choose error simulation type
         print("\nSelect error simulation type:")
         print("1 → Hardware Error")
@@ -195,16 +218,16 @@ def send_error_request(client_socket):
             time.sleep(random.uniform(1.0, 2.0))
             data = receive_with_timeout(client_socket, 10, 1)
             if data:
-               print(f"\n {data}")
-               handle_hardware_error(client_socket) # Call function for hardware error handling
+                print(f"\n {data}")
+                handle_hardware_error(client_socket) # Call function for hardware error handling
             break
         elif choice == '2':
             client_socket.sendall("Request out of sight error.".encode())
             time.sleep(random.uniform(1.0, 2.0))
             data = receive_with_timeout(client_socket, 10, 1)
             if data:
-               print(f"\n {data}")
-               handle_out_of_sight_error(client_socket) # Call function for out of sight error handling
+                print(f"\n {data}")
+                handle_out_of_sight_error(client_socket) # Call function for out of sight error handling
             break
         elif choice == '3':
             client_socket.sendall("Exit".encode())
@@ -212,7 +235,7 @@ def send_error_request(client_socket):
             break
         else:
             print("\n❌Invalid choice, please try again.")
-            continue
+            return
 
 # Function for hardware (sensors) error simulation
 def handle_hardware_error(client_socket):
@@ -242,7 +265,7 @@ def handle_hardware_error(client_socket):
         print("\nBackup sensor activated. Rover continues operation.")
         
     else:
-        print("\n❌Invalid choice. Please select a valid action.")
+        print("\nInvalid choice. Please select a valid action.")
         handle_hardware_error(client_socket)  # Recursive call to handle error again
 
 # Function for rover out of sight error simulation
@@ -271,7 +294,7 @@ def handle_out_of_sight_error(client_socket):
         time.sleep(3)
 
         print("\nRovers Coordinations Requested.")
-       
+
         coordinates = client_socket.recv(1024).decode()
 
         print(f"\n📍Rover Coordinates: {coordinates}")
@@ -294,23 +317,23 @@ def send_discovery_request(client_socket):
             #print(f"\nReceived from rover: {nearby_rovers_message}")
             
             if nearby_rovers_message:
-               # User can choose a rover from the discovered rovers to connect to (simulation)
-               nearby_rovers = nearby_rovers_message.split(": ")[1].split(", ")
-               print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
-               chosen_rover = input("\nChoose a rover to connect to: ").strip()
+                # User can choose a rover from the discovered rovers to connect to (simulation)
+                nearby_rovers = nearby_rovers_message.split(": ")[1].split(", ")
+                print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
+                chosen_rover = input("\nChoose a rover to connect to: ").strip()
 
-               client_socket.sendall(chosen_rover.encode())
+                client_socket.sendall(chosen_rover.encode())
 
-               connection_response = receive_with_timeout(client_socket, 10, 1) 
-               #print(f"\nRover response: {connection_response}")
-               if connection_response:
-                  if "Connecting to" in connection_response:
-                       print(f"\nConnection established with {chosen_rover}.")
-                  else:
-                       print(f"\nFailed to connect to {chosen_rover}. Please check the rover selection.")
-               else: 
+                connection_response = receive_with_timeout(client_socket, 10, 1) 
+                #print(f"\nRover response: {connection_response}")
+                if connection_response:
+                    if "Connecting to" in connection_response:
+                        print(f"\nConnection established with {chosen_rover}.")
+                    else:
+                        print(f"\nFailed to connect to {chosen_rover}. Please check the rover selection.")
+                else:
                     print("\n⚠️ Timeout occurred while receiving rover connection data.")
-            else: 
+            else:
                 print("\n⚠️ Timeout occurred while receiving discovery data.")
 
         elif choice == 'Exit':
