@@ -4,12 +4,12 @@ import random
 import csv
 
 welcome_message = """
-███████╗ █████╗ ██████╗ ████████╗██╗  ██╗        ██████╗ ██╗  ██╗
+███████╗ █████╗ ██████╗ ████████╗██╗  ██╗         █████╗ ██╗  ██╗
 ██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██║  ██║        ██╔══██╗██║  ██║
 ██████╗ ███████║██████╔╝   ██║   ███████║        ██║  ██║███████║
 ██╔════╗██╔══██║██╔██╗     ██║   ██╔══██║        ██║  ██║╚════██║
-███████╗██║  ██║██║╚██╗    ██║   ██║  ██║        ██████╔╝     ██║
-╚══════╝╚═╝  ╚═╝╚═╝ ╚═╝    ╚═╝   ╚═╝  ╚═╝        ╚═════╝      ╚═╝
+███████╗██║  ██║██║╚██╗    ██║   ██║  ██║         █████╔╝     ██║
+╚══════╝╚═╝  ╚═╝╚═╝ ╚═╝    ╚═╝   ╚═╝  ╚═╝         ╚════╝      ╚═╝
 """
 
 #host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
@@ -43,6 +43,21 @@ port = int(input("\nEnter port number (5000-5004): ").strip())
 # Start the server on the chosen port
 server_socket, client_socket = start_server(port)
 
+# Function to receive data from rover with an specific timeout and retries
+def receive_with_timeout(client_socket, timeout, retries):
+    client_socket.settimeout(timeout) # Sets timeout for socket connection
+    attempt = 0 # Tracks attempts made to get data
+    while attempt < retries: # Loop until reaches specified amount of retries
+        try:
+            data = client_socket.recv(1024).decode() # Answer from rover
+            if data:
+                return data
+        except socket.timeout: # If not data is received before timout:
+            attempt += 1
+            print(f"⚠️ Timeout after {timeout}s. Retrying... ({attempt}/{retries})")
+    print("❌ Failed to receive data after multiple retries.")
+    return None
+
 # Function for Movement Port to request certain coordinates to rover
 def send_movement_commands(client_socket):
     while True:
@@ -60,9 +75,13 @@ def send_movement_commands(client_socket):
             time.sleep(random.uniform(1.0, 2.0)) # Random delay between 1 and 2 seconds (simulation)
 
             # Wait for a response from the client
-            response = client_socket.recv(1024).decode()
+            response = receive_with_timeout(client_socket, 10, 1)
             time.sleep(random.uniform(1.0, 2.0))
-            print(f"\n📡Client response: {response}")
+            if response:
+                print(f"\n📡Client response: {response}")
+            else:
+                print("\n⚠️No response from rover. Exiting movement mode.")
+                break
 
         except Exception as e:
             print(f"\n⚠️Error: {e}")
@@ -95,8 +114,12 @@ def send_telemetry_request(client_socket):
 
         # Receive and print telemetry response
         time.sleep(random.uniform(1.0, 2.0))
-        data = client_socket.recv(1024).decode()
-        print(f"\n📊Received telemetry data: {data}")
+        data = receive_with_timeout(client_socket, 10, 1)
+        if data:
+            print(f"\n📊Received telemetry data: {data}")
+        else:
+            print("\n⚠️ Timeout occurred while receiving telemetry data.")
+
 
 # Function for Data Port to request certain temperature data to rover
 def receive_and_save_data(client_socket):
@@ -109,17 +132,18 @@ def receive_and_save_data(client_socket):
 
         while True:
             try:
-                data = client_socket.recv(1024).decode()
-                if not data:
-                    print("\n⚠️No data received, client may have disconnected.")
+                data = receive_with_timeout(client_socket, 300, 1)
+                if data: 
+                   if data == "All data sent.":
+                      print("\n✅All data received from client.")
+                      break
+                   
+                   print(data.strip()) # Print every line of received data 
+                  # time.sleep(random.uniform(1.0, 2.0))
+                   csv_writer.writerow([data.strip()]) # Write received data to CSV file
+                else:
+                    print("\n⚠️No data received within the timeout. Closing data reception.")
                     break
-                if data == "All data sent.":
-                    print("\n✅All data received from client.")
-                    break
-
-                print(data.strip()) # Print every line of received data 
-                time.sleep(random.uniform(1.0, 2.0))
-                csv_writer.writerow([data.strip()]) # Write received data to CSV file
 
             except Exception as e:
                 print(f"\nError while receiving data: {e}")
@@ -140,16 +164,18 @@ def send_error_request(client_socket):
         if choice == '1':
             client_socket.sendall("Request hardware error.".encode())
             time.sleep(random.uniform(1.0, 2.0))
-            data = client_socket.recv(1024).decode()
-            print(f"\n {data}")
-            handle_hardware_error(client_socket) # Call function for hardware error handling
+            data = receive_with_timeout(client_socket, 10, 1)
+            if data:
+               print(f"\n {data}")
+               handle_hardware_error(client_socket) # Call function for hardware error handling
             break
         elif choice == '2':
             client_socket.sendall("Request out of sight error.".encode())
             time.sleep(random.uniform(1.0, 2.0))
-            data = client_socket.recv(1024).decode()
-            print(f"\n {data}")
-            handle_out_of_sight_error(client_socket) # Call function for out of sight error handling
+            data = receive_with_timeout(client_socket, 10, 1)
+            if data:
+               print(f"\n {data}")
+               handle_out_of_sight_error(client_socket) # Call function for out of sight error handling
             break
         elif choice == '3':
             client_socket.sendall("Exit".encode())
@@ -231,24 +257,29 @@ def send_discovery_request(client_socket):
             print("\nᯤRequesting rover to discover nearby devices...")
             client_socket.sendall("Nearby discovery.".encode())
 
-            nearby_rovers_message = client_socket.recv(1024).decode() # List of nearby rovers found
+            nearby_rovers_message = receive_with_timeout(client_socket, 10, 1) # List of nearby rovers found
             #print(f"\nReceived from rover: {nearby_rovers_message}")
-
-            # User can choose a rover from the discovered rovers to connect to (simulation)
-            nearby_rovers = nearby_rovers_message.split(": ")[1].split(", ")
-            print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
-            chosen_rover = input("\nChoose a rover to connect to: ").strip()
-
-            client_socket.sendall(chosen_rover.encode())
-
-            connection_response = client_socket.recv(1024).decode()
-            #print(f"\nRover response: {connection_response}")
-
-            if "Connecting to" in connection_response:
-                    print(f"\nConnection established with {chosen_rover}.")
-            else:
-                    print(f"\nFailed to connect to {chosen_rover}. Please check the rover selection.")
             
+            if nearby_rovers_message:
+               # User can choose a rover from the discovered rovers to connect to (simulation)
+               nearby_rovers = nearby_rovers_message.split(": ")[1].split(", ")
+               print(f"\n🤖Nearby rovers found: {', '.join(nearby_rovers)}")
+               chosen_rover = input("\nChoose a rover to connect to: ").strip()
+
+               client_socket.sendall(chosen_rover.encode())
+
+               connection_response = receive_with_timeout(client_socket, 10, 1) 
+               #print(f"\nRover response: {connection_response}")
+               if connection_response:
+                  if "Connecting to" in connection_response:
+                       print(f"\nConnection established with {chosen_rover}.")
+                  else:
+                       print(f"\nFailed to connect to {chosen_rover}. Please check the rover selection.")
+               else: 
+                    print("\n⚠️ Timeout occurred while receiving rover connection data.")
+            else: 
+                print("\n⚠️ Timeout occurred while receiving discovery data.")
+
         elif choice == 'Exit':
             client_socket.sendall("Exit".encode())
             print("\n🚪Exiting discovery mode.")
