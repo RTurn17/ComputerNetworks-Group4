@@ -24,7 +24,7 @@ def start_server(port):
     print(f"\n🌍Earth Computer04 is listening on port {port}...")
 
     client_socket, client_address = server_socket.accept() # Wait for client to connect
-    print(f"✅Connection established with {client_address} on port {port}")
+    print(f"Connection established with {client_address} on port {port}")
 
     return server_socket, client_socket # Returns the connection
 
@@ -65,7 +65,7 @@ def send_movement_commands(client_socket):
             x = input("\nEnter target X coordinate (or 'exit' to close connection): ").strip()
             if x.lower() == "exit":
                 client_socket.send("exit".encode())
-                print("\n🚪Exiting movement mode.")
+                print("\nExiting movement mode.")
                 break
             
             y = input("Enter target Y coordinate: ").strip()
@@ -78,7 +78,7 @@ def send_movement_commands(client_socket):
             response = receive_with_timeout(client_socket, 10, 1)
             time.sleep(random.uniform(1.0, 2.0))
             if response:
-                print(f"\n📡Client response: {response}")
+                print(f"\nClient response: {response}")
             else:
                 print("\n⚠️No response from rover. Exiting movement mode.")
                 break
@@ -106,7 +106,7 @@ def send_telemetry_request(client_socket):
             client_socket.sendall("Request telemetry data for thermal conditions.".encode())
         elif choice == '4':
             client_socket.sendall("Exit".encode())
-            print("\n🚪Exiting telemetry mode.")
+            print("\nExiting telemetry mode.")
             break
         else:
             print("\n❌Invalid choice, please try again.")
@@ -116,7 +116,7 @@ def send_telemetry_request(client_socket):
         time.sleep(random.uniform(1.0, 2.0))
         data = receive_with_timeout(client_socket, 10, 1)
         if data:
-            print(f"\n📊Received telemetry data: {data}")
+            print(f"\nReceived telemetry data: {data}")
         else:
             print("\n⚠️ Timeout occurred while receiving telemetry data.")
 
@@ -135,7 +135,7 @@ def receive_and_save_data(client_socket):
                 data = receive_with_timeout(client_socket, 300, 1)
                 if data: 
                    if data == "All data sent.":
-                      print("\n✅All data received from client.")
+                      print("\nAll data received from client.")
                       break
                    
                    print(data.strip()) # Print every line of received data 
@@ -179,7 +179,7 @@ def send_error_request(client_socket):
             break
         elif choice == '3':
             client_socket.sendall("Exit".encode())
-            print("\n🚪Exiting telemetry mode.")
+            print("\nExiting telemetry mode.")
             break
         else:
             print("\n❌Invalid choice, please try again.")
@@ -200,7 +200,7 @@ def handle_hardware_error(client_socket):
         
         time.sleep(3) # Simulating the stop action
         
-        print("\n🛑Rover stopped. Awaiting further instructions from the Head Department.")
+        print("\nRover stopped. Awaiting further instructions from the Head Department.")
         
         
     elif choice == '2': # Use backup sensor and continue operation
@@ -209,7 +209,7 @@ def handle_hardware_error(client_socket):
 
         time.sleep(3)
 
-        print("\n🛰️Backup sensor activated. Rover continues operation.")
+        print("\nBackup sensor activated. Rover continues operation.")
         
     else:
         print("\n❌Invalid choice. Please select a valid action.")
@@ -230,7 +230,7 @@ def handle_out_of_sight_error(client_socket):
 
         time.sleep(3)
     
-        print("\n🛑Rover stopped. Awaiting further instructions from the Head Department.")
+        print("\nRover stopped. Awaiting further instructions from the Head Department.")
 
         
     elif choice == '2': # Ask for coordinates to know rovers location
@@ -254,7 +254,7 @@ def send_discovery_request(client_socket):
         choice = input("\nEnter 'Discover nearby devices' to discover or 'Exit' to quit: ").strip()
 
         if choice == 'Discover nearby devices': # Want to discover nearby lunar devices
-            print("\nᯤRequesting rover to discover nearby devices...")
+            print("\nRequesting rover to discover nearby devices...")
             client_socket.sendall("Nearby discovery.".encode())
 
             nearby_rovers_message = receive_with_timeout(client_socket, 10, 1) # List of nearby rovers found
@@ -282,7 +282,7 @@ def send_discovery_request(client_socket):
 
         elif choice == 'Exit':
             client_socket.sendall("Exit".encode())
-            print("\n🚪Exiting discovery mode.")
+            print("\nExiting discovery mode.")
             break
             
         else:
@@ -291,23 +291,23 @@ def send_discovery_request(client_socket):
 
 
 if port == 5000:  # Movement Commands
-    print("\n🚀Handling movement commands...")
+    print("\nHandling movement commands...")
     send_movement_commands(client_socket)
 
 elif port == 5001:  # Telemetry Requests
-    print("\n📊Handling telemetry requests...")
+    print("\nHandling telemetry requests...")
     send_telemetry_request(client_socket)
 
 elif port == 5002:  # Data Transmission
-    print("\n📡Handling data requests...")
+    print("\nHandling data requests...")
     receive_and_save_data(client_socket)
 
 elif port == 5003:  # Error Messages
-    print("\n⚠️Listening for error messages...")
+    print("\nListening for error messages...")
     send_error_request(client_socket)
 
 elif port == 5004:  # Rover discovery
-    print("\n🤖Listening for nearby lunar devices...")
+    print("\nListening for nearby lunar devices...")
     send_discovery_request(client_socket)
 
 # Close connections
