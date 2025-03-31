@@ -11,6 +11,7 @@ welcome_message = """
 ███████╗██║  ██║██║╚██╗    ██║   ██║  ██║         █████╔╝     ██║
 ╚══════╝╚═╝  ╚═╝╚═╝ ╚═╝    ╚═╝   ╚═╝  ╚═╝         ╚════╝      ╚═╝
 """
+local_password = "Group04"
 
 #host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
 # Print the determined IP address
@@ -31,6 +32,7 @@ def start_server(port):
 # START:
 print(welcome_message) # Earth Computer Welcome message
 
+
 # Ask user which port to use
 print("\nSelect a port for communication:")
 print("5000 → Movement Commands")
@@ -40,8 +42,23 @@ print("5003 → Error Messages")
 print("5004 → Discover Nearby Rovers")
 port = int(input("\nEnter port number (5000-5004): ").strip())
 
+# Ask the user to input the password
+password_input = input("\nPlease enter your password: ")
+# Check if user input is correct password
+if password_input == local_password:
+    print("Correct Password\n")
+    # Start the server on the chosen port
+    server_socket, client_socket = start_server(port)
+    
+    #client_socket.close()  # Close the client socket after use
+    #server_socket.close()  # Close the server socket after use
+    #print("\nServer connection closed.")
+else:
+    print("Incorrect Password\n")
+
 # Start the server on the chosen port
-server_socket, client_socket = start_server(port)
+#server_socket, client_socket = start_server(port)
+
 
 # Function to receive data from rover with an specific timeout and retries
 def receive_with_timeout(client_socket, timeout, retries):
