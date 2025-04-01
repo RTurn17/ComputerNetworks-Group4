@@ -274,6 +274,7 @@ def error_client():
                 elif action_taken == "Rovers Coordinations Request.":
                      time.sleep(random.uniform(1.0, 2.0)) 
                      print("\n📍Getting Rovers Coordinates...") # Simulate getting rover coordinates
+                     time.sleep(random.uniform(1.0, 2.0)) 
                      coordinates = "30.20" 
                      client_socket.sendall(coordinates.encode())
                      break
@@ -309,6 +310,7 @@ def discovery_client():
             elif command =="Nearby discovery.":
                 time.sleep(random.uniform(1.0, 2.0))  
                 print(f"\nSearching for nearby rovers...")
+                time.sleep(random.uniform(1.0, 3.0)) 
 
                 nearby_rovers = ["Rover_03", "Rover_13"] # Simulating a list of nearby rovers found (with groups 3 and 13)
 
