@@ -135,7 +135,7 @@ def telemetry_client():
 
 # Function to handle data sending
 def data_client():
-    try: 
+    try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
 
@@ -146,18 +146,55 @@ def data_client():
         try:
             with open("data_dummy1.csv", 'r') as file:
                 for line in file:
-                        client_socket.sendall(line.encode()) # Send line by line to the server
-                        time.sleep(1) # Wait for 1 second before sending the next line
+                    client_socket.sendall(line.encode())  # Send line by line to the server
+                    time.sleep(1)  # Wait for 1 second before sending the next line
 
-                # After sending all lines:
-                client_socket.sendall("All data sent.".encode())
-                print("\n✅All data sent.")
-            
+            # After sending all CSV lines:
+            client_socket.sendall("All data sent.".encode())
+            print("\nAll data sent.")
         except FileNotFoundError:
-                print("\n⚠️CSV file not found.")
+            print("\n⚠️CSV file not found.")
+        
+        # Now send the image file (additional feature)
+        try:
+            with open("image_dummy.jpg", "rb") as image_file:
+                # Signal the start of the image transfer
+                client_socket.sendall("IMAGE_START".encode())
+                time.sleep(0.5)
+                # Read and send the image in chunks (1KB per chunk)
+                while True:
+                    chunk = image_file.read(1024)
+                    if not chunk:
+                        break
+                    client_socket.sendall(chunk)
+                time.sleep(0.5)
+                # Signal the end of the image transfer
+                client_socket.sendall("IMAGE_END".encode())
+            print("\nData image sent.")
+        except FileNotFoundError:
+            print("\n⚠️Image file not found.")
+        
+        # Now send the video file (additional feature)
+        try:
+            with open("dummy_video.mp4", "rb") as video_file:
+                # Signal the start of the video transfer
+                client_socket.sendall("VIDEO_START".encode())
+                time.sleep(0.5)
+                # Read and send the video in chunks (1KB per chunk)
+                while True:
+                    chunk = video_file.read(1024)
+                    if not chunk:
+                        break
+                    client_socket.sendall(chunk)
+                time.sleep(0.5)
+                # Signal the end of the video transfer
+                client_socket.sendall("VIDEO_END".encode())
+            print("\nVideo is sent.")
+        except FileNotFoundError:
+            print("\n⚠️Video file not found.")
 
     except ConnectionError:
-        print("Port 5002: Data, not on use. ")
+        print("Port 5002: Data, not on use.")
     except Exception as e:
         print(f"\n⚠️Unexpected error in data_client(): {e}")
     finally:
@@ -217,8 +254,11 @@ def error_client():
                      client_socket.sendall(coordinates.encode())
                      break
 
+            elif error_request == "Exit":
+                print("\nExiting error mode.")
+                break
             else:
-                print("\n⚠️Unknown error request.")
+                print("\n⚠️Unknown Error request.")
                 continue
             
     except ConnectionError:
