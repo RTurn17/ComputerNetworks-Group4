@@ -170,17 +170,35 @@ def data_client():
                 time.sleep(0.5)
                 # Signal the end of the image transfer
                 client_socket.sendall("IMAGE_END".encode())
-            print("\n✅Data image is downloaded.")
+            print("\n✅Data image sent.")
         except FileNotFoundError:
             print("\n⚠️Image file not found.")
+        
+        # Now send the video file (additional feature)
+        try:
+            with open("dummy_video.mp4", "rb") as video_file:
+                # Signal the start of the video transfer
+                client_socket.sendall("VIDEO_START".encode())
+                time.sleep(0.5)
+                # Read and send the video in chunks (1KB per chunk)
+                while True:
+                    chunk = video_file.read(1024)
+                    if not chunk:
+                        break
+                    client_socket.sendall(chunk)
+                time.sleep(0.5)
+                # Signal the end of the video transfer
+                client_socket.sendall("VIDEO_END".encode())
+            print("\n✅dummy_video.mp4 is sent.")
+        except FileNotFoundError:
+            print("\n⚠️Video file not found.")
 
     except ConnectionError:
-        print("Port 5002: Data, not on use. ")
+        print("Port 5002: Data, not on use.")
     except Exception as e:
         print(f"\n⚠️Unexpected error in data_client(): {e}")
     finally:
         client_socket.close()
-
 
 
 # Function to send error simulations
