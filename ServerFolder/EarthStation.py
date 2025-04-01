@@ -392,7 +392,7 @@ def send_discovery_request(client_socket):
             
         else:
             print("\nInvalid choice. Please select a valid action.")
-            handle_hardware_error(client_socket)  # Error handling for invalid input
+            send_discovery_request(client_socket)  # Error handling for invalid input
 
 
 # Function for Grooup Port 5005 to collaborate with other groups
