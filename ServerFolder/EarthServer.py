@@ -36,7 +36,12 @@ def start_server(port):
 
     client_socket, client_address = server_socket.accept()
 
-    if (authenticate(client_socket)):
+    authented = True
+    if(port == 5000 or port == 5001 or port == 5002 or port == 5003):
+        authented = authenticate(client_socket)
+        print(authented)
+
+    if (authented):
         print(f"✅Connection established with {client_address} on port {port}")
         return server_socket, client_socket, 1
     else: 
