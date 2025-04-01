@@ -17,14 +17,14 @@ welcome_message = """
 """
 local_password = "Group04"
 
-#host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
+host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
 # Print the determined IP address
-#print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
+print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
 
 # Function to create and bind a socket on a given port of our choice
 def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create server socket using IPv4 and TCP
-    server_socket.bind(("localhost", port)) # Binding to port and choosen device IP ######## CHANGE TO IP ###########
+    server_socket.bind(('localhost', port)) # Binding to port and choosen device IP ######## CHANGE TO IP ###########
     server_socket.listen(1) # Listening to any connections
     print(f"\n🌍Earth Computer04 is listening on port {port}...")
 
@@ -80,7 +80,7 @@ def receive_with_timeout(client_socket, timeout, retries):
         except socket.timeout: # If not data is received before timout:
             attempt += 1
             print(f"⚠️ Timeout after {timeout}s. Retrying... ({attempt}/{retries})")
-    print("❌ Failed to receive data after multiple retries.")
+    print("Failed to receive data after multiple retries.")
     return None
 
 
@@ -136,12 +136,12 @@ def send_telemetry_request(client_socket):
             print("\nExiting telemetry mode.")
             break
         else:
-            print("\n❌Invalid choice, please try again.")
+            print("\nInvalid choice, please try again.")
             continue
 
         # Receive and print telemetry response
         time.sleep(random.uniform(1.0, 2.0))
-        data = receive_with_timeout(client_socket, 10, 1)
+        data = receive_with_timeout(client_socket, 20, 1)
         if data:
             print(f"\nReceived telemetry data: {data}")
         else:
@@ -153,7 +153,7 @@ def receive_and_save_data(client_socket):
     print("\n📥Requesting data...")
     client_socket.sendall("Send data.".encode())
 
-    # Create a new csv file for writing received data
+    # Create a new CSV file for writing received data
     with open("received_data.csv", "w", newline="") as csvfile:
         csv_writer = csv.writer(csvfile)
 
@@ -161,13 +161,12 @@ def receive_and_save_data(client_socket):
             try:
                 data = receive_with_timeout(client_socket, 300, 1)
                 if data: 
-                   if data == "All data sent.":
-                      print("\nAll data received from client.")
-                      break
-                   
-                   print(data.strip()) # Print every line of received data 
-                  # time.sleep(random.uniform(1.0, 2.0))
-                   csv_writer.writerow([data.strip()]) # Write received data to CSV file
+                    if data == "All data sent.":
+                        print("\nAll data received from client.")
+                        break
+
+                    print(data.strip())  # Print every line of received data
+                    csv_writer.writerow([data.strip()])  # Write received data to CSV file
                 else:
                     print("\n⚠️No data received within the timeout. Closing data reception.")
                     break
@@ -177,6 +176,52 @@ def receive_and_save_data(client_socket):
                 break
 
     print("\n📂Data saved to received_data.csv.")
+
+    # Now receive the image file
+    try:
+        # Wait for the image start marker
+        marker = client_socket.recv(1024).decode().strip()
+        if marker == "IMAGE_START":
+            image_data = b""
+            while True:
+                chunk = client_socket.recv(1024)
+                if b"IMAGE_END" in chunk:
+                    end_index = chunk.find(b"IMAGE_END")
+                    image_data += chunk[:end_index]
+                    break
+                image_data += chunk
+
+            # Save the received image to file
+            with open("received_image.jpg", "wb") as img_file:
+                img_file.write(image_data)
+            print("\n📂Data image is downloaded.")
+        else:
+            print(f"\n⚠️Expected IMAGE_START marker but got: {marker}")
+    except Exception as e:
+        print(f"\nError while receiving image: {e}")
+
+    # Now receive the video file
+    try:
+        # Wait for the video start marker
+        marker = client_socket.recv(1024).decode().strip()
+        if marker == "VIDEO_START":
+            video_data = b""
+            while True:
+                chunk = client_socket.recv(1024)
+                if b"VIDEO_END" in chunk:
+                    end_index = chunk.find(b"VIDEO_END")
+                    video_data += chunk[:end_index]
+                    break
+                video_data += chunk
+
+            # Save the received video to file
+            with open("recieved_video.mp4", "wb") as video_file:
+                video_file.write(video_data)
+            print("\n📂Data video is downloaded.")
+        else:
+            print(f"\n⚠️Expected VIDEO_START marker but got: {marker}")
+    except Exception as e:
+        print(f"\nError while receiving video: {e}")
 
 
 # Function for Error Port 5003 to simulate error scenarios
@@ -211,7 +256,7 @@ def send_error_request(client_socket):
             print("\nExiting telemetry mode.")
             break
         else:
-            print("\n❌Invalid choice, please try again.")
+            print("\nInvalid choice, please try again.")
             continue
 
 # Function for hardware (sensors) error simulation
@@ -242,7 +287,7 @@ def handle_hardware_error(client_socket):
         print("\nBackup sensor activated. Rover continues operation.")
         
     else:
-        print("\n❌Invalid choice. Please select a valid action.")
+        print("\nInvalid choice. Please select a valid action.")
         handle_hardware_error(client_socket)  # Recursive call to handle error again
 
 # Function for rover out of sight error simulation
@@ -277,7 +322,7 @@ def handle_out_of_sight_error(client_socket):
         print(f"\n📍Rover Coordinates: {coordinates}")
 
     else:
-        print("\n❌Invalid choice. Please select a valid action.")
+        print("\nInvalid choice. Please select a valid action.")
         handle_out_of_sight_error(client_socket)  # Recursive call to handle error again
         
 
@@ -319,7 +364,7 @@ def send_discovery_request(client_socket):
             break
             
         else:
-            print("\n❌Invalid choice. Please select a valid action.")
+            print("\nInvalid choice. Please select a valid action.")
             handle_hardware_error(client_socket)  # Error handling for invalid input
 
 
@@ -337,7 +382,7 @@ def group_rover(client_socket):
                 response = client_socket.recv(1024).decode()
                 print(f"\nReceived response: {response}")
             else:
-                print("\n❌Invalid choice. Try again.")
+                print("\nInvalid choice. Try again.")
 
 
 if port == 5000:  # Movement Commands
