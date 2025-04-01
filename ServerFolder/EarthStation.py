@@ -21,17 +21,39 @@ host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### 
 # Print the determined IP address
 print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
 
-# Function to create and bind a socket on a given port of our choice
+# Authentication
+def authenticate(client_socket):
+    # Define the correct passwords
+    key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
+    # key = ["sdlakfjklasdfj", "sdafsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfasdf"]
+    keyWord = int(time.time()) % 7
+    current_password = key[keyWord]
+
+    # send current password to client
+    client_socket.send(current_password.encode())
+    # Wait for client to confirm the password
+    response = client_socket.recv(1024).decode()
+    
+    if response == "correct":
+        return True
+    else:
+        return False
+
+# Function to create and bind a socket on a given port
 def start_server(port):
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create server socket using IPv4 and TCP
-    server_socket.bind(('localhost', port)) # Binding to port and choosen device IP ######## CHANGE TO IP ###########
-    server_socket.listen(1) # Listening to any connections
-    print(f"\n🌍Earth Computer04 is listening on port {port}...")
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(("localhost", port))
+    server_socket.listen(1)
+    print(f"\n🌍Server is listening on port {port}...")
 
-    client_socket, client_address = server_socket.accept() # Wait for client to connect
-    print(f"Connection established with {client_address} on port {port}")
+    client_socket, client_address = server_socket.accept()
 
-    return server_socket, client_socket # Returns the connection
+    if (authenticate(client_socket)):
+        print(f"Connection established with {client_address} on port {port}")
+        return server_socket, client_socket, 1
+    else: 
+        print("Authentication failed, connection terminating.")
+        return server_socket, client_socket, 0
 
 # START:
 print(welcome_message) # Earth Computer Welcome message
@@ -50,7 +72,7 @@ print("5004 → Discover Nearby Rovers")
 print("5005 - Group Communication")
 port = int(input("\nEnter port number (5000-5005): ").strip())
 
-# Ask the user to input the password
+"""# Ask the user to input the password
 password_input = input("\nPlease enter your password: ")
 # Check if user input is correct password
 if password_input == local_password:
@@ -66,7 +88,12 @@ else:
 
 # Start the server on the chosen port
 #server_socket, client_socket = start_server(port)
-
+"""""
+# Start the server on the chosen port
+server_socket, client_socket, auth = start_server(port)
+if(auth == 0):
+    client_socket.close()
+    server_socket.close()
 
 # Function to receive data from rover with an specific timeout and retries
 def receive_with_timeout(client_socket, timeout, retries):
