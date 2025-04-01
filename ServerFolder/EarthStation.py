@@ -25,7 +25,7 @@ print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
 def authenticate(client_socket):
     # Define the correct passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
-    # key = ["sdlakfjklasdfj", "sdafsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfasdf"]
+    #key = ["sdlakfjklasdfj", "sdafsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfasdf"]
     keyWord = int(time.time()) % 7
     current_password = key[keyWord]
 
@@ -48,12 +48,17 @@ def start_server(port):
 
     client_socket, client_address = server_socket.accept()
 
-    if (authenticate(client_socket)):
-        print(f"Connection established with {client_address} on port {port}")
+    authented = True
+    if(port == 5000 or port == 5001 or port == 5002 or port == 5003):
+        authented = authenticate(client_socket)
+
+    if (authented):
+        print(f"✅Connection established with {client_address} on port {port}")
         return server_socket, client_socket, 1
     else: 
         print("Authentication failed, connection terminating.")
         return server_socket, client_socket, 0
+
 
 # START:
 print(welcome_message) # Earth Computer Welcome message
