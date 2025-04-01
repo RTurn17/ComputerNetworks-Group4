@@ -13,6 +13,7 @@ import csv
 def authenticate(client_socket):
     # Define the correct passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
+    # key = ["sdlakfjklasdfj", "sdafsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfasdf"]
     keyWord = int(time.time()) % 7
     current_password = key[keyWord]
 
@@ -52,18 +53,24 @@ print("5004 → Discover Nearby Rovers")
 
 port = int(input("\nEnter port number (5000-5004): ").strip())
 
-local_password = "securepassword123"
-# Ask the user to input the password
-password_input = input("\nPlease enter your password: ")
-# Check if user input correct password
-if (password_input == local_password):
-    # Start the server on the chosen port
-    server_socket, client_socket, auth = start_server(port)
-    if(auth == 0):
-        client_socket.close()
-        server_socket.close()
-else:
-    print("Incorrct Password\n")
+# local_password = "securepassword123"
+# # Ask the user to input the password
+# password_input = input("\nPlease enter your password: ")
+# # Check if user input correct password
+# if (password_input == local_password):
+#     # Start the server on the chosen port
+#     server_socket, client_socket, auth = start_server(port)
+#     if(auth == 0):
+#         client_socket.close()
+#         server_socket.close()
+# else:
+#     print("Incorrct Password\n")
+
+# Start the server on the chosen port
+server_socket, client_socket, auth = start_server(port)
+if(auth == 0):
+    client_socket.close()
+    server_socket.close()
 
 def send_movement_commands(client_socket):
     while True:
