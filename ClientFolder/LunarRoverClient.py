@@ -33,13 +33,33 @@ init(autoreset=True)
 console=Console()
 print(Fore.CYAN+ pyfiglet.figlet_format("LETS EXPLORE THE MOON!"))
 
+# Server Authentication
+def authenticate(client_socket):
+    # Define array of passwords
+    key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
+    keyWord = int(time.time()) % 7
+    correct_password = key[keyWord]
+    
+    # Receive the password from the server
+    server_password = client_socket.recv(1024).decode()
+
+    if server_password == correct_password:
+        # If password is correct, send success response
+        client_socket.send("correct".encode())
+        return True
+    else:
+        # If password is incorrect, send failure response
+        client_socket.send("incorrect".encode())
+        return False 
+
 # Function to handle movement request
 def movement_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create client socket using IPv4 and TCP
         client_socket.connect((SERVER_IP, PORTS["move"])) # Connect to the move port
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             command = client_socket.recv(1024).decode()
             if command == "exit":
                 print("\nExiting movement mode.")
@@ -68,8 +88,9 @@ def telemetry_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["telemetry"]))
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             command = client_socket.recv(1024).decode()
 
             if command.startswith("Request telemetry data"):
@@ -138,26 +159,28 @@ def data_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["data"]))
+        auth = authenticate(client_socket)
 
-        time.sleep(random.uniform(1.0, 2.0))
-        print("\nServer asks to send data.")
+        if auth == True:
+          time.sleep(random.uniform(1.0, 2.0))
+          print("\nServer asks to send data.")
         
-        # Open the CSV file and send it line by line with a delay simulation
-        try:
-            with open("data_dummy1.csv", 'r') as file:
-                for line in file:
-                    client_socket.sendall(line.encode())  # Send line by line to the server
-                    time.sleep(1)  # Wait for 1 second before sending the next line
+          # Open the CSV file and send it line by line with a delay simulation
+          try:
+             with open("data_dummy1.csv", 'r') as file:
+                  for line in file:
+                      client_socket.sendall(line.encode())  # Send line by line to the server
+                      time.sleep(1)  # Wait for 1 second before sending the next line
 
-            # After sending all CSV lines:
-            client_socket.sendall("All data sent.".encode())
-            print("\nAll data sent.")
-        except FileNotFoundError:
+              # After sending all CSV lines:
+             client_socket.sendall("All data sent.".encode())
+             print("\nAll data sent.")
+          except FileNotFoundError:
             print("\n⚠️CSV file not found.")
         
-        # Now send the image file (additional feature)
-        try:
-            with open("image_dummy.jpg", "rb") as image_file:
+          # Now send the image file (additional feature)
+          try:
+              with open("image_dummy.jpg", "rb") as image_file:
                 # Signal the start of the image transfer
                 client_socket.sendall("IMAGE_START".encode())
                 time.sleep(0.5)
@@ -170,13 +193,13 @@ def data_client():
                 time.sleep(0.5)
                 # Signal the end of the image transfer
                 client_socket.sendall("IMAGE_END".encode())
-            print("\nData image sent.")
-        except FileNotFoundError:
-            print("\n⚠️Image file not found.")
+              print("\nData image sent.")
+          except FileNotFoundError:
+              print("\n⚠️Image file not found.")
         
-        # Now send the video file (additional feature)
-        try:
-            with open("dummy_video.mp4", "rb") as video_file:
+          # Now send the video file (additional feature)
+          try:
+              with open("dummy_video.mp4", "rb") as video_file:
                 # Signal the start of the video transfer
                 client_socket.sendall("VIDEO_START".encode())
                 time.sleep(0.5)
@@ -189,10 +212,10 @@ def data_client():
                 time.sleep(0.5)
                 # Signal the end of the video transfer
                 client_socket.sendall("VIDEO_END".encode())
-            print("\nVideo is sent.")
-        except FileNotFoundError:
-            print("\n⚠️Video file not found.")
-
+              print("\nVideo is sent.")
+          except FileNotFoundError:
+             print("\n⚠️Video file not found.")
+  
     except ConnectionError:
         print("Port 5002: Data, not on use.")
     except Exception as e:
@@ -206,8 +229,9 @@ def error_client():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((SERVER_IP, PORTS["errors"]))
+        auth = authenticate(client_socket)
 
-        while True:
+        while auth == True:
             error_request = client_socket.recv(1024).decode()
             #print(f"\nReceived request: {error_request}")
         
@@ -276,6 +300,7 @@ def discovery_client():
         client_socket.connect((SERVER_IP, PORTS["discovery"]))
 
         while True:
+            authenticate(client_socket)
             command = client_socket.recv(1024).decode()
             if command == "Exit":
                 print("\nExiting discovery mode.")
