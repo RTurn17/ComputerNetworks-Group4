@@ -24,8 +24,8 @@ PORTS = {
     "telemetry": 5001,
     "data": 5002,
     "errors": 5003,
-    "discovery": 5004, 
-    "group_rover": 5005  
+    "discovery": 5004, # Simulation
+    "group_rover": 5005  # Simulation
 }
 
 print(welcome_message)
