@@ -200,6 +200,29 @@ def receive_and_save_data(client_socket):
     except Exception as e:
         print(f"\nError while receiving image: {e}")
 
+    # Now receive the video file
+    try:
+        # Wait for the video start marker
+        marker = client_socket.recv(1024).decode().strip()
+        if marker == "VIDEO_START":
+            video_data = b""
+            while True:
+                chunk = client_socket.recv(1024)
+                if b"VIDEO_END" in chunk:
+                    end_index = chunk.find(b"VIDEO_END")
+                    video_data += chunk[:end_index]
+                    break
+                video_data += chunk
+
+            # Save the received video to file
+            with open("recieved_dummy_video.mp4", "wb") as video_file:
+                video_file.write(video_data)
+            print("\n✅recieved_dummy_video.mp4 is downloaded.")
+        else:
+            print(f"\n⚠️Expected VIDEO_START marker but got: {marker}")
+    except Exception as e:
+        print(f"\nError while receiving video: {e}")
+
 
 
 # Function for Error Port 5003 to simulate error scenarios
