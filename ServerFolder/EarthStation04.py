@@ -145,8 +145,15 @@ else:
         server_socket.listen(1)
         print(f"\n🌍Earth Computer04 is listening on port {port}...")
         client_socket, client_address = server_socket.accept()
-        print(f"Connection established with {client_address} on port {port}")
-        return server_socket, client_socket
+        authented = True
+        if(port == 5000 or port == 5001 or port == 5002 or port == 5003):
+            authented = authenticate(client_socket)
+        if (authented):
+            print(f"✅Connection established with {client_address} on port {port}")
+            return server_socket, client_socket, 1
+        else: 
+            print("Authentication failed, connection terminating.")
+            return server_socket, client_socket, 0
 
     server_socket, client_socket = start_server(port)
  
