@@ -17,14 +17,14 @@ welcome_message = """
 """
 local_password = "Group04"
 
-#host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
+host = socket.gethostbyname(socket.gethostname()) # Get devices IP address #### Uncomment #### 
 # Print the determined IP address
-#print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
+print(f"\n🔹 Server IP Address: {host}") #### Uncomment ####
 
 # Function to create and bind a socket on a given port of our choice
 def start_server(port):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create server socket using IPv4 and TCP
-    server_socket.bind(("localhost", port)) # Binding to port and choosen device IP ######## CHANGE TO IP ###########
+    server_socket.bind(('192.168.94.219', port)) # Binding to port and choosen device IP ######## CHANGE TO IP ###########
     server_socket.listen(1) # Listening to any connections
     print(f"\n🌍Earth Computer04 is listening on port {port}...")
 
@@ -80,7 +80,7 @@ def receive_with_timeout(client_socket, timeout, retries):
         except socket.timeout: # If not data is received before timout:
             attempt += 1
             print(f"⚠️ Timeout after {timeout}s. Retrying... ({attempt}/{retries})")
-    print("❌ Failed to receive data after multiple retries.")
+    print(" Failed to receive data after multiple retries.")
     return None
 
 
@@ -136,7 +136,7 @@ def send_telemetry_request(client_socket):
             print("\nExiting telemetry mode.")
             break
         else:
-            print("\n❌Invalid choice, please try again.")
+            print("\n Invalid choice, please try again.")
             continue
 
         # Receive and print telemetry response
@@ -150,7 +150,7 @@ def send_telemetry_request(client_socket):
 
 # Function for Data Port 5002 to request certain temperature data to rover
 def receive_and_save_data(client_socket):
-    print("\n📥Requesting data...")
+    print("\n Requesting data...")
     client_socket.sendall("Send data.".encode())
 
     # Create a new CSV file for writing received data
@@ -160,7 +160,7 @@ def receive_and_save_data(client_socket):
         while True:
             try:
                 data = receive_with_timeout(client_socket, 300, 1)
-                if data: 
+                if data:
                     if data == "All data sent.":
                         print("\nAll data received from client.")
                         break
@@ -175,7 +175,7 @@ def receive_and_save_data(client_socket):
                 print(f"\nError while receiving data: {e}")
                 break
 
-    print("\n📂Data saved to received_data.csv.")
+    print("\nData saved to received_data.csv.")
 
     # Now receive the image file
     try:
@@ -194,7 +194,10 @@ def receive_and_save_data(client_socket):
             # Save the received image to file
             with open("received_image.jpg", "wb") as img_file:
                 img_file.write(image_data)
-            print("\n✅Data image is downloaded.")
+            print("\nData image is downloaded.")
+
+            # Send acknowledgment to client that image has been received
+            client_socket.sendall("IMAGE_RECEIVED".encode())
         else:
             print(f"\n⚠️Expected IMAGE_START marker but got: {marker}")
     except Exception as e:
@@ -215,9 +218,9 @@ def receive_and_save_data(client_socket):
                 video_data += chunk
 
             # Save the received video to file
-            with open("recieved_dummy_video.mp4", "wb") as video_file:
+            with open("received_dummy_video.mp4", "wb") as video_file:
                 video_file.write(video_data)
-            print("\n✅recieved_dummy_video.mp4 is downloaded.")
+            print("\n Recieved data video is downloaded.")
         else:
             print(f"\n⚠️Expected VIDEO_START marker but got: {marker}")
     except Exception as e:
@@ -259,6 +262,7 @@ def send_error_request(client_socket):
         else:
             print("\n❌Invalid choice, please try again.")
             return
+        
 
 # Function for hardware (sensors) error simulation
 def handle_hardware_error(client_socket):
