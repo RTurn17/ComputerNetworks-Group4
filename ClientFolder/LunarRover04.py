@@ -63,12 +63,12 @@ def broadcast():
     finally:
         sock.close()
 
-"""# Server Authentication
+# Server Authentication
 def authenticate(client_socket):
     # Define array of passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
     keyWord = int(time.time()) % 7
-    correct_password = key[keyWord]
+    correct_password = key[0]
     
     # Receive the password from the server
     server_password = client_socket.recv(1024).decode()
@@ -80,7 +80,7 @@ def authenticate(client_socket):
     else:
         # If password is incorrect, send failure response
         client_socket.send("incorrect".encode())
-        return False """
+        return False 
 
 # Function to handle movement request        
 def movement_client():
