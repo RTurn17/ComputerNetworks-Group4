@@ -15,7 +15,7 @@ welcome_message = """
 ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚═╝ ╚═╝       ╚═╝ ╚═╝ ╚═════╝    ╚══╝  ╚══════╝╚═╝ ╚═╝
 """
 
-SERVER_IP = 'localhost' #'localhost' for same laptop ######## CHANGE TO IP ###########
+SERVER_IP = '192.168.94.219' #'localhost' for same laptop ######## CHANGE TO IP ###########
 ROVER_ID = "Rover_04"  # Unique identifier for your rover
 
 # Ports used for each different task simulation
@@ -151,11 +151,11 @@ def data_client():
 
             # After sending all CSV lines:
             client_socket.sendall("All data sent.".encode())
-            print("\n✅All data sent.")
+            print("\n All data sent.")
         except FileNotFoundError:
             print("\n⚠️CSV file not found.")
         
-        # Now send the image file (additional feature)
+        # Now send the image file (additional feature) with handshake
         try:
             with open("image_dummy.jpg", "rb") as image_file:
                 # Signal the start of the image transfer
@@ -170,9 +170,17 @@ def data_client():
                 time.sleep(0.5)
                 # Signal the end of the image transfer
                 client_socket.sendall("IMAGE_END".encode())
-            print("\n✅Data image sent.")
+            time.sleep(0.5)
+            print("\n Data image sent. Waiting for server acknowledgment...")
+            
+            # Wait for the server's acknowledgment for the image
+            ack = client_socket.recv(1024).decode().strip()
+            if ack == "IMAGE_RECEIVED":
+                print("\n Server confirmed image receipt.")
+            else:
+                print("\n Expected acknowledgment for image transfer:", ack)
         except FileNotFoundError:
-            print("\n⚠️Image file not found.")
+            print("\n⚠Image file not found.")
         
         # Now send the video file (additional feature)
         try:
@@ -189,7 +197,7 @@ def data_client():
                 time.sleep(0.5)
                 # Signal the end of the video transfer
                 client_socket.sendall("VIDEO_END".encode())
-            print("\n✅dummy_video.mp4 is sent.")
+            print("\nVideo data is sent.")
         except FileNotFoundError:
             print("\n⚠️Video file not found.")
 
@@ -199,6 +207,7 @@ def data_client():
         print(f"\n⚠️Unexpected error in data_client(): {e}")
     finally:
         client_socket.close()
+
 
 
 # Function to send error simulations
