@@ -23,13 +23,12 @@ print(Fore.GREEN+ pyfiglet.figlet_format("EARTH STATION"))
 host = socket.gethostbyname(socket.gethostname())
 print(f"\nServer IP Address: {host}")
 
-"""# Authentication
+# Authentication
 def authenticate(client_socket):
     # Define the correct passwords
     key = ["r8d4iUv43G", "sc80o1H4bM", "iWx6pMduF7", "4yV8dfX6ar", "m3C2gD8z7", "j8lnk1Egy8", "G5bl172eHv"]
-    #key = ["sdlakfjklasdfj", "sdafsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfsadf", "asdfasdf"]
     keyWord = int(time.time()) % 7
-    current_password = key[keyWord]
+    current_password = key[0]
 
     # send current password to client
     client_socket.send(current_password.encode())
@@ -39,7 +38,7 @@ def authenticate(client_socket):
     if response == "correct":
         return True
     else:
-        return False"""
+        return False
 
 # Function to receive data from rover with an specific timeout and retries
 def receive_with_timeout(client_socket, timeout, retries):
